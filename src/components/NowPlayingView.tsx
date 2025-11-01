@@ -1,98 +1,128 @@
-// src/components/NowPlayingView.tsx (예시)
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Song, Playlist } from '../types'; // 타입 임포트
+// types.ts 파일에서 공유 타입 임포트
+import { Song, Playlist, Artist } from '../types'; 
 
+// App.tsx로부터 전달받을 Props 타입 정의
 interface NowPlayingViewProps {
-    song: Song;
-    isPlaying: boolean;
-    audioRef: React.RefObject<HTMLAudioElement | null>;
-    onPlayPause: () => void;
-    onNext: () => void;
-    onPrev: () => void;
-    onBackClick: () => void;
+    song: Song; // 현재 재생 중인 곡 (App.tsx에서 artistName, albumCoverUrl이 채워져서 옴)
+    isPlaying: boolean; // 현재 재생 상태
+    audioRef: React.RefObject<HTMLAudioElement | null>; // App.tsx의 오디오 요소 참조 (null 허용)
+    onPlayPause: () => void; // 재생/일시정지 토글 함수
+    onNext: () => void; // 다음 곡 함수
+    onPrev: () => void; // 이전 곡 함수
+    onBackClick: () => void; // 라이브러리 뷰로 돌아가기 함수
 }
 
+// 시간 포맷 유틸리티 함수 (초 -> MM:SS)
+const formatTime = (seconds: number): string => {
+   // 숫자가 아니거나 음수이면 00:00 반환
+   if (isNaN(seconds) || seconds < 0) return "0:00";
+   const minutes = Math.floor(seconds / 60); // 분
+   const remainingSeconds = Math.floor(seconds % 60); // 초
+   // 두 자리 숫자로 포맷팅
+   return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
+
+
+// --- NowPlayingView 컴포넌트 ---
 const NowPlayingView: React.FC<NowPlayingViewProps> = ({
     song, isPlaying, audioRef, onPlayPause, onNext, onPrev, onBackClick
 }) => {
-    // --- 탐색 바 상태 ---
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [isSeeking, setIsSeeking] = useState(false);
+    // --- 상태 변수 정의 ---
+    const [currentTime, setCurrentTime] = useState(0); // 현재 재생 시간 (탐색 바용)
+    const [duration, setDuration] = useState(0); // 곡 전체 길이 (탐색 바용)
+    const [isSeeking, setIsSeeking] = useState(false); // 사용자가 탐색 바를 드래그 중인지 여부
 
-    // --- 재생목록에 추가 관련 상태 ---
+    // "재생목록에 추가" 모달 관련 상태
     const [showPlaylistModal, setShowPlaylistModal] = useState(false); // 모달 표시 여부
-    const [availablePlaylists, setAvailablePlaylists] = useState<Playlist[]>([]); // 추가 가능한 내 플레이리스트 목록
-    const [isAddingSong, setIsAddingSong] = useState(false); // 추가 작업 중 로딩 상태
+    const [availablePlaylists, setAvailablePlaylists] = useState<Playlist[]>([]); // 추가 가능한 플레이리스트 목록
+    const [isAddingSong, setIsAddingSong] = useState(false); // 곡 추가 API 호출 중 로딩 상태
 
-    // 오디오 시간 업데이트 리스너
+    // 아티스트 이름 상태 (prop으로 받은 song.artistName 사용)
+    const [artistName, setArtistName] = useState(song.artistName || `ID ${song.artistId}`);
+
+    // --- Effect 훅 ---
+    
+    // 곡(song prop)이 변경될 때마다 아티스트 이름 상태 업데이트
+    useEffect(() => {
+        // App.tsx에서 song 객체에 artistName을 이미 매핑해줬으므로 바로 사용
+        setArtistName(song.artistName || `ID ${song.artistId}`);
+    }, [song]); // song 객체가 변경될 때마다 실행
+
+    // 오디오 시간/메타데이터 리스너
+    // audioRef(App.tsx의 <audio> 요소)의 이벤트를 감지하여 탐색 바 상태 업데이트
     useEffect(() => {
         const audio = audioRef.current;
-        if (!audio) return;
+        if (!audio) return; // 오디오 요소가 없으면 중단
 
+        // 시간 업데이트 이벤트 핸들러
         const handleTimeUpdate = () => {
-            if (!isSeeking) setCurrentTime(audio.currentTime);
+            // 사용자가 탐색 바를 드래그하고 있지 않을 때만 시간 업데이트
+            if (!isSeeking) {
+                setCurrentTime(audio.currentTime);
+            }
         };
+        // 메타데이터 로드 완료 이벤트 핸들러 (곡 길이 설정)
         const handleLoadedMetadata = () => {
             setDuration(audio.duration);
         };
+        
+        // 컴포넌트 마운트 시 또는 audioRef 변경 시 오디오 요소의 현재 상태 반영
+        if(audio.readyState >= 1) { // METADATA 이상 로드된 경우
+             setDuration(audio.duration);
+             setCurrentTime(audio.currentTime);
+        }
 
+        // 이벤트 리스너 등록
         audio.addEventListener('timeupdate', handleTimeUpdate);
         audio.addEventListener('loadedmetadata', handleLoadedMetadata);
 
-        // 초기 duration 설정
-        if(audio.readyState >= 1) { // METADATA 이상 로드된 경우
-             setDuration(audio.duration);
-        }
-
+        // 클린업 함수: 컴포넌트 언마운트 시 리스너 제거
         return () => {
             audio.removeEventListener('timeupdate', handleTimeUpdate);
             audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
         };
-    }, [audioRef, isSeeking]);
+    }, [audioRef, isSeeking]); // isSeeking 상태가 변경될 때도 리스너 재설정
 
-    // 탐색 바 핸들러
-    const handleSeekChange = (event: React.ChangeEvent<HTMLInputElement>) => { /* MusicPlayer와 동일 */
+    // --- 탐색 바 핸들러 ---
+    // 슬라이더 값 변경 시 (드래그 중)
+    const handleSeekChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (audioRef.current) {
             const newTime = parseFloat(event.target.value);
-            audioRef.current.currentTime = newTime;
-            setCurrentTime(newTime);
+            audioRef.current.currentTime = newTime; // 오디오 재생 시간 즉시 변경
+            setCurrentTime(newTime); // 슬라이더 위치(UI) 즉시 변경
         }
     };
+    // 슬라이더 누르기 시작 시
     const handleSeekMouseDown = () => setIsSeeking(true);
+    // 슬라이더에서 손 뗄 시
     const handleSeekMouseUp = () => setIsSeeking(false);
 
-    // 시간 포맷 함수
-    const formatTime = (seconds: number): string => { /* MusicPlayer와 동일 */
-       if (isNaN(seconds) || seconds < 0) return "0:00";
-       const minutes = Math.floor(seconds / 60);
-       const remainingSeconds = Math.floor(seconds % 60);
-       return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-    };
+    // --- "재생목록에 추가" 기능 핸들러 ---
 
-    // --- 재생목록에 추가 기능 ---
-
-    // '추가' 버튼 클릭 시 모달 열기 및 플레이리스트 로드
+    // '+' 버튼 클릭 시 모달 열기 및 플레이리스트 목록 로드
     const handleOpenAddToPlaylist = async () => {
-        setIsAddingSong(true);
+        setIsAddingSong(true); // 로딩 시작
+        setShowPlaylistModal(true); // 모달 표시
         try {
+            // 백엔드 API 호출하여 모든 재생목록 가져오기 (HTTPS 사용)
             const response = await axios.get<Playlist[]>('https://localhost:8443/api/playlists');
             setAvailablePlaylists(Array.isArray(response.data) ? response.data : []);
-            setShowPlaylistModal(true); // 모달 표시
         } catch (error) {
             console.error("플레이리스트 로드 실패:", error);
             alert("플레이리스트를 불러오는 데 실패했습니다.");
+            setShowPlaylistModal(false); // 오류 시 모달 닫기
         } finally {
-            setIsAddingSong(false);
+            setIsAddingSong(false); // 로딩 종료
         }
     };
 
-    // 모달에서 플레이리스트 선택 시 곡 추가 API 호출
+    // 모달에서 특정 플레이리스트 선택 시 곡 추가 API 호출
     const handleAddSongToSelectedPlaylist = async (playlistId: number) => {
-        setIsAddingSong(true);
+        setIsAddingSong(true); // 버튼 로딩 상태
         try {
-            // 백엔드 API 호출
+            // 백엔드 API 호출 (POST /api/playlists/{id}/songs) (HTTPS 사용)
             await axios.post(`https://localhost:8443/api/playlists/${playlistId}/songs`, {
                 songId: song.songId // 현재 재생 중인 곡의 ID
             });
@@ -100,17 +130,24 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
             setShowPlaylistModal(false); // 모달 닫기
         } catch (error) {
             console.error("재생목록에 곡 추가 실패:", error);
-            alert('곡을 추가하는 데 실패했습니다.');
+            if (axios.isAxiosError(error) && error.response?.status === 400) {
+                 alert('곡을 추가하는 데 실패했습니다. (이미 목록에 있을 수 있습니다)');
+            } else {
+                 alert('곡을 추가하는 데 실패했습니다.');
+            }
         } finally {
             setIsAddingSong(false);
         }
     };
 
 
+    // --- 렌더링 로직 ---
     return (
         <div className="now-playing-container">
-            {/* 뒤로가기 버튼 */}
-            <button onClick={onBackClick} className="back-button-np">↓</button>
+            {/* 헤더: 뒤로가기 버튼 */}
+            <div className="now-playing-header">
+                <button onClick={onBackClick} className="back-button-np">↓</button>
+            </div>
 
             {/* 큰 앨범 아트 */}
             <img src={song.albumCoverUrl || '/logo192.png'} alt="앨범 아트" className="album-art-large" />
@@ -118,7 +155,8 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
             {/* 곡 정보 */}
             <div className="song-info-large">
                 <h2>{song.title}</h2>
-                <p>{/* 아티스트 이름 로드 필요 */} Artist ID: {song.artistId}</p>
+                {/* 🚨 [수정] artistId 대신 artistName 상태 변수 사용 */}
+                <p>{artistName}</p>
             </div>
 
             {/* 탐색 바 */}
@@ -127,13 +165,13 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
                 <input
                     type="range"
                     min="0"
-                    max={duration || 0}
+                    max={duration && !isNaN(duration) ? duration : 0} // duration 유효성 검사
                     value={currentTime}
                     onChange={handleSeekChange}
                     onMouseDown={handleSeekMouseDown}
                     onMouseUp={handleSeekMouseUp}
                     className="seek-bar-large"
-                    disabled={!duration}
+                    disabled={!duration || duration === 0} // 곡 없거나 길이 0이면 비활성화
                 />
                 <span className="time-display">{formatTime(duration)}</span>
             </div>
@@ -149,32 +187,32 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
                 <button className="control-button repeat">🔁</button> {/* TODO: 반복 기능 */}
             </div>
 
-            {/* 추가 기능 버튼 (예: 좋아요, 재생목록 추가) */}
+            {/* 추가 기능 버튼 (좋아요, 재생목록 추가) */}
             <div className="now-playing-footer">
-                <button className="like-button">🤍</button> {/* TODO: 좋아요 기능 */}
-                {/* 🚨 재생목록에 추가 버튼 */}
-                <button onClick={handleOpenAddToPlaylist} className="add-to-playlist-button" disabled={isAddingSong}>
-                    {isAddingSong ? '로딩...' : '+'}
+                {<button className="like-button"></button> /* TODO: 좋아요 기능 */}
+                <button onClick={handleOpenAddToPlaylist} className="add-to-playlist-button" disabled={isAddingSong} title="재생목록에 추가">
+                    {isAddingSong ? '...' : '+'}
                 </button>
-                {/* 기타 버튼 */}
             </div>
 
-            {/* 재생목록 선택 모달 (간단 버전) */}
+            {/* 재생목록 선택 모달 (showPlaylistModal이 true일 때만 표시) */}
             {showPlaylistModal && (
                 <div className="playlist-modal-overlay" onClick={() => setShowPlaylistModal(false)}>
+                    {/* 모달 컨텐츠 클릭 시 닫힘 방지 */}
                     <div className="playlist-modal" onClick={(e) => e.stopPropagation()}>
                         <h3>재생목록에 추가</h3>
-                        {isAddingSong && <p>로딩 중...</p>}
+                        {/* 목록 로딩 중 표시 */}
+                        {isAddingSong && <p style={{textAlign: 'center', margin: '1rem 0'}}>로딩 중...</p>}
                         <ul>
-                            {availablePlaylists.length > 0 ? (
+                            {!isAddingSong && availablePlaylists.length > 0 ? (
                                 availablePlaylists.map(pl => (
                                     <li key={pl.playlistId} onClick={() => handleAddSongToSelectedPlaylist(pl.playlistId)}>
                                         {pl.title}
                                     </li>
                                 ))
-                            ) : (
+                            ) : !isAddingSong ? (
                                 <li>생성된 재생목록이 없습니다.</li>
-                            )}
+                            ) : null}
                         </ul>
                         <button onClick={() => setShowPlaylistModal(false)} className="modal-close-btn">닫기</button>
                     </div>
@@ -185,3 +223,4 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
 };
 
 export default NowPlayingView;
+
