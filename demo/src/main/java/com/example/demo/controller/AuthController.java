@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.UserJoinRequest;
 import com.example.demo.dto.UserLoginRequest;
+import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,21 +28,22 @@ public class AuthController {
         }
     }
     
-    // 🚨 로그인 API: POST /api/auth/login (토큰 반환)
+    // 🚨 [수정] 로그인 API: 토큰 대신 사용자 정보 (닉네임 등) 반환
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginRequest request) {
         try {
-            // UserService에서 JWT 토큰을 발급받습니다.
-            String token = userService.login(request);
+            // 🚨 [수정] 반환 타입 String -> User
+            User user = userService.login(request);
             
-            // 프론트엔드가 토큰을 쉽게 저장할 수 있도록 JSON 형태로 반환
             Map<String, String> response = new HashMap<>();
             response.put("message", "로그인 성공!");
-            response.put("token", token);
+            // 🚨 [수정] 토큰 대신 닉네임과 이메일 반환 (예시)
+            response.put("nickname", user.getNickname());
+            response.put("email", user.getEmail());
+            // (절대 비밀번호를 반환하면 안 됩니다!)
             
             return ResponseEntity.ok().body(response);
         } catch (IllegalArgumentException e) {
-            // 이메일 또는 비밀번호 불일치 시 401 Unauthorized 반환
             return ResponseEntity.status(401).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("로그인 중 서버 오류가 발생했습니다.");
