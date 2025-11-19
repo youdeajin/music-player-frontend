@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Song, Artist } from '../types'; // 🚨 Artist 타입 임포트
+import './Chatbot.css';
 
 // 채팅 메시지 구조 정의
 interface Message {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 // types.ts 파일에서 공유 타입 임포트
 import { Song, Playlist, Album, Artist, PlaylistDetail } from '../types';
+import './PlaylistDetailView.css';
 
 // App.tsx로부터 전달받을 Props 타입 정의
 interface PlaylistDetailViewProps {

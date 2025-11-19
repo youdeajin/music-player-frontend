@@ -1,6 +1,7 @@
 // src/components/MiniPlayer.tsx
 import React from 'react';
 import { Song } from '../types';
+import './MiniPlayer.css';
 
 interface MiniPlayerProps {
   song: Song | null;
