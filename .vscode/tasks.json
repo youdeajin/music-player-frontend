@@ -1,0 +1,57 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "프론트엔드 시작 (Frontend)",
+      "type": "shell",
+      "command": "npm.cmd",
+      "args": ["start"],
+      "options": {
+        "cwd": "C:\\work\\2_structure\\music-player-frontend",
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/d", "/c"]
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "runOptions": {
+        "runOn": "default"
+      }
+    },
+    {
+      "label": "백엔드 시작 (Backend)",
+      "type": "shell",
+      "command": "C:\\work\\2_structure\\DB\\demo\\mvnw.cmd",
+      "args": ["spring-boot:run"],
+      "options": {
+        "cwd": "C:\\work\\2_structure\\DB\\demo",
+        "shell": {
+          "executable": "cmd.exe",
+          "args": ["/d", "/c"]
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "runOptions": {
+        "runOn": "default"
+      }
+    },
+    {
+      "label": "프론트엔드 + 백엔드 동시 실행",
+      "dependsOn": [
+        "프론트엔드 시작 (Frontend)",
+        "백엔드 시작 (Backend)"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    }
+  ]
+}
+

@@ -1,5 +1,6 @@
+// src/types.ts
+
 // --- 기본 데이터 타입 ---
-// (Song, Artist, Album, Playlist, PlaylistDetail 인터페이스 정의는 기존과 동일)
 
 export interface Artist {
   artistId: number;
@@ -42,12 +43,17 @@ export interface PlaylistDetail extends Playlist {
   songs: Song[];
 }
 
+// 🚨 [추가] 사용자 정보 타입
+export interface User {
+  userId: number; // 🚨 [추가] 필수!
+  email: string;
+  nickname: string;
+}
 
 // --- 앱 내부 UI 상태 타입 ---
 
-// 🚨 [수정] Library 뷰의 탭 종류 (순서 되돌리기: Songs, Albums, Playlists)
+// Library 뷰의 탭 종류
 export type LibraryTab = 'Songs' | 'Albums' | 'Playlists';
 
 // 메인 화면 뷰 종류
 export type View = 'library' | 'playlistDetail' | 'nowPlaying';
-

@@ -108,7 +108,7 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
         setShowPlaylistModal(true); // 모달 표시
         try {
             // 백엔드 API 호출하여 모든 재생목록 가져오기 (HTTPS 사용)
-            const response = await axios.get<Playlist[]>('https://localhost:8443/api/playlists');
+            const response = await axios.get<Playlist[]>('http://localhost:8080/api/playlists');
             setAvailablePlaylists(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
             console.error("플레이리스트 로드 실패:", error);
@@ -124,7 +124,7 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
         setIsAddingSong(true); // 버튼 로딩 상태
         try {
             // 백엔드 API 호출 (POST /api/playlists/{id}/songs) (HTTPS 사용)
-            await axios.post(`https://localhost:8443/api/playlists/${playlistId}/songs`, {
+            await axios.post(`http://localhost:8080/api/playlists/${playlistId}/songs`, {
                 songId: song.songId // 현재 재생 중인 곡의 ID
             });
             alert('곡이 재생목록에 추가되었습니다.');

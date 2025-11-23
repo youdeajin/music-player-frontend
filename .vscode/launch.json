@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "프론트엔드 디버그",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "cwd": "C:\\work\\2_structure\\music-player-frontend",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "프론트엔드 + 백엔드 동시 실행",
+      "configurations": ["프론트엔드 디버그"],
+      "preLaunchTask": "프론트엔드 + 백엔드 동시 실행"
+    }
+  ]
+}
+

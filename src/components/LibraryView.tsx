@@ -53,7 +53,7 @@ const LibraryView: React.FC<LibraryViewProps> = ({
     setIsSearching(true);
     const debounceTimer = setTimeout(async () => {
       try {
-        const response = await axios.get(`https://localhost:8443/api/songs/search`, { params: { query: searchQuery } });
+        const response = await axios.get(`http://localhost:8080/api/songs/search`, { params: { query: searchQuery } });
         
         const processedSearchResults = (Array.isArray(response.data) ? response.data : []).map(song => {
             const artist = artists.find(a => a.artistId === song.artistId);
@@ -88,7 +88,7 @@ const LibraryView: React.FC<LibraryViewProps> = ({
       }
       setIsCreating(true);
       try {
-          const response = await axios.post('https://localhost:8443/api/playlists', {
+          const response = await axios.post('http://localhost:8080/api/playlists', {
               title: newPlaylistName,
               isPublic: true,
               songIds: []

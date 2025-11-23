@@ -43,7 +43,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ onRecommendationResult, allArtists })
 
     try {
       // 백엔드 챗봇 API 호출
-      const response = await axios.post<Song[]>('https://localhost:8443/api/chatbot/recommend', {
+      const response = await axios.post<Song[]>('http://localhost:8080/api/chatbot/recommend', {
         prompt: promptToSend
       });
 

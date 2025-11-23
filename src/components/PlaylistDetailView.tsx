@@ -65,7 +65,7 @@ const PlaylistDetailView: React.FC<PlaylistDetailViewProps> = ({
 
         if (playlistId) {
           // --- 플레이리스트 상세 정보 로드 ---
-          const response = await axios.get<PlaylistDetail>(`https://localhost:8443/api/playlists/${playlistId}`);
+          const response = await axios.get<PlaylistDetail>(`http://localhost:8080/api/playlists/${playlistId}`);
           const playlistData = response.data;
           
           // 🚨 [수정] 곡 목록에 앨범 커버 URL 및 아티스트 이름 매핑 (props 활용)
@@ -85,8 +85,8 @@ const PlaylistDetailView: React.FC<PlaylistDetailViewProps> = ({
         } else if (albumId) {
           // --- 앨범 상세 정보 로드 ---
           const [albumRes, songsRes] = await Promise.all([
-            axios.get<Album>(`https://localhost:8443/api/albums/${albumId}`), // 1. 앨범 자체 정보
-            axios.get<Song[]>(`https://localhost:8443/api/albums/${albumId}/songs`) // 2. 앨범 수록곡 목록
+            axios.get<Album>(`http://localhost:8080/api/albums/${albumId}`), // 1. 앨범 자체 정보
+            axios.get<Song[]>(`http://localhost:8080/api/albums/${albumId}/songs`) // 2. 앨범 수록곡 목록
           ]);
           
           const loadedSongs = songsRes.data || [];
@@ -165,7 +165,7 @@ const PlaylistDetailView: React.FC<PlaylistDetailViewProps> = ({
     // eslint-disable-next-line no-restricted-globals
     if (confirm(`'${details.title}' 재생목록에서 '${songToRemove.title}'을(를) 삭제하시겠습니까?`)) {
         try {
-            await axios.delete(`https://localhost:8443/api/playlists/${playlistId}/songs/${songToRemove.songId}`);
+            await axios.delete(`http://localhost:8080/api/playlists/${playlistId}/songs/${songToRemove.songId}`);
             // 상태 즉시 업데이트
             const updatedSongs = songs.filter(s => s.songId !== songToRemove.songId);
             setSongs(updatedSongs);

@@ -93,7 +93,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ songs, setSongs }) => {
     const fetchPlaylists = async () => {
         try {
             // 백엔드 API 호출하여 모든 재생목록 가져오기 (HTTPS 사용)
-            const playlistsResponse = await axios.get('https://localhost:8443/api/playlists');
+            const playlistsResponse = await axios.get('http://localhost:8080/api/playlists');
             // 응답 데이터가 배열인지 확인하고 상태 업데이트
             setPlaylists(Array.isArray(playlistsResponse.data) ? playlistsResponse.data : []);
         } catch (error) {
@@ -131,7 +131,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ songs, setSongs }) => {
         // 아티스트 정보 로드
         if (currentSong.artistId) {
           try {
-            const artistRes = await axios.get<Artist>(`https://localhost:8443/api/artists/${currentSong.artistId}`);
+            const artistRes = await axios.get<Artist>(`http://localhost:8080/api/artists/${currentSong.artistId}`);
             setCurrentArtistName(artistRes.data.name);
           } catch (error) { setCurrentArtistName("정보 없음"); }
         }
@@ -139,7 +139,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ songs, setSongs }) => {
         // 앨범 정보 및 커버 URL 로드
         if (currentSong.albumId) {
           try {
-            const albumRes = await axios.get<Album>(`https://localhost:8443/api/albums/${currentSong.albumId}`);
+            const albumRes = await axios.get<Album>(`http://localhost:8080/api/albums/${currentSong.albumId}`);
             setCurrentAlbumTitle(albumRes.data.title);
             // 앨범 응답에 coverUrl이 있으면 상태 업데이트
             if (albumRes.data.coverUrl) {
@@ -205,7 +205,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ songs, setSongs }) => {
   // 저장된 재생목록 클릭 시 곡 목록 로드
   const loadPlaylistSongs = async (playlistId: number) => {
     try {
-      const response = await axios.get<PlaylistDetail>(`https://localhost:8443/api/playlists/${playlistId}`);
+      const response = await axios.get<PlaylistDetail>(`http://localhost:8080/api/playlists/${playlistId}`);
       if (response.data && Array.isArray(response.data.songs)) {
         setSongs(response.data.songs.length > 0 ? response.data.songs : []); // App 상태 업데이트
         setCurrentSongIndex(0);
@@ -234,14 +234,14 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ songs, setSongs }) => {
     const currentSongIds = songs.map(song => song.songId);
 
     try {
-      const response = await axios.post('https://localhost:8443/api/playlists', {
+      const response = await axios.post('http://localhost:8080/api/playlists', {
         title: newPlaylistTitle, isPublic: true, songIds: currentSongIds
       });
       if (response.status === 201) {
         alert(`재생목록 '${newPlaylistTitle}' 생성 완료!`);
         setNewPlaylistTitle(""); // 입력 필드 초기화
         // 저장된 재생목록 목록 새로고침
-        const playlistsResponse = await axios.get('https://localhost:8443/api/playlists');
+        const playlistsResponse = await axios.get('http://localhost:8080/api/playlists');
         setPlaylists(Array.isArray(playlistsResponse.data) ? playlistsResponse.data : []);
       }
     } catch (error) {
@@ -255,11 +255,11 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ songs, setSongs }) => {
     // eslint-disable-next-line no-restricted-globals
     if (confirm(`정말로 재생목록 '${playlistTitle}'을(를) 삭제하시겠습니까?`)) {
       try {
-        const response = await axios.delete(`https://localhost:8443/api/playlists/${playlistId}`);
+        const response = await axios.delete(`http://localhost:8080/api/playlists/${playlistId}`);
         if (response.status === 204) { // No Content
           alert(`재생목록 '${playlistTitle}' 삭제 완료!`);
           // 저장된 재생목록 목록 새로고침
-          const playlistsResponse = await axios.get('https://localhost:8443/api/playlists');
+          const playlistsResponse = await axios.get('http://localhost:8080/api/playlists');
           setPlaylists(Array.isArray(playlistsResponse.data) ? playlistsResponse.data : []);
         }
       } catch (error) {
