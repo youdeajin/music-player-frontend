@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
-import { Playlist, Album, Artist, Song, LibraryTab } from '../types';
+import React, { useState, useEffect } from 'react';
+// 🚨 [수정] 설정된 axios 불러오기 (주소 자동 적용)
+import axios from '../axiosConfig';
+import { Playlist, Album, Artist, Song, LibraryTab, User } from '../types';
 import './LibraryView.css';
 
-// 🚨 [추가] 날씨 추천 응답 타입 정의
 export interface WeatherRecommendation {
   weather: string;
   message: string;
@@ -14,14 +14,15 @@ interface LibraryViewProps {
   playlists: Playlist[];
   albums: Album[];
   artists: Artist[];
-  songs: Song[]; // (호환성을 위해 남겨두지만 실제로는 빈 배열이 옴)
-  featuredSongs: Song[]; // (사용하지 않음)
-  weatherRecommendation: WeatherRecommendation | null; // 🚨 [추가] 날씨 추천 응답 타입
-  // 🚨 [수정] 새로 추가된 Props
+  songs: Song[];
+  featuredSongs: Song[];
+  weatherRecommendation: WeatherRecommendation | null;
   recommendedSongs: Song[];
   popularSongs: Song[];
-
-  recentSongs: Song[]; // 🚨 [추가] 최신곡
+  recentSongs: Song[];
+  
+  // 🚨 [추가] 로그인한 사용자 정보 받기
+  currentUser: User; 
 
   onPlaylistClick: (id: number) => void;
   onAlbumClick: (id: number) => void;
@@ -32,7 +33,8 @@ interface LibraryViewProps {
 
 const LibraryView: React.FC<LibraryViewProps> = ({
   playlists, albums, artists, songs, featuredSongs,
-  recommendedSongs, popularSongs, weatherRecommendation, recentSongs, // 🚨 추가된 props
+  recommendedSongs, popularSongs, weatherRecommendation, recentSongs,
+  currentUser, // 🚨 [추가] 여기서 받음
   onPlaylistClick, onAlbumClick, onSongClick,
   refreshPlaylists,
   onSearchResultClick
@@ -53,7 +55,8 @@ const LibraryView: React.FC<LibraryViewProps> = ({
     setIsSearching(true);
     const debounceTimer = setTimeout(async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/songs/search`, { params: { query: searchQuery } });
+        // 🚨 [수정] axios 인스턴스 사용
+        const response = await axios.get(`/api/songs/search`, { params: { query: searchQuery } });
         
         const processedSearchResults = (Array.isArray(response.data) ? response.data : []).map(song => {
             const artist = artists.find(a => a.artistId === song.artistId);
@@ -80,7 +83,7 @@ const LibraryView: React.FC<LibraryViewProps> = ({
       }
   };
 
-  // --- 헬퍼 함수 ---
+  // --- 재생목록 생성 함수 (수정됨) ---
   const handleCreateNewPlaylist = async () => {
       if (!newPlaylistName.trim()) {
           alert('새 재생목록 이름을 입력해주세요.');
@@ -88,10 +91,12 @@ const LibraryView: React.FC<LibraryViewProps> = ({
       }
       setIsCreating(true);
       try {
-          const response = await axios.post('http://localhost:8080/api/playlists', {
+          // 🚨 [수정] userId를 함께 전송!
+          const response = await axios.post('/api/playlists', {
               title: newPlaylistName,
               isPublic: true,
-              songIds: []
+              songIds: [],
+              userId: currentUser.userId // 👈 여기가 핵심입니다!
           });
 
           if (response.status === 201) {
@@ -110,12 +115,9 @@ const LibraryView: React.FC<LibraryViewProps> = ({
   // --- 탭 컨텐츠 렌더링 ---
   const renderContent = () => {
     switch (activeTab) {
-
-      // --- 🚨 'Songs' 탭: 추천곡 & 인기곡 섹션 ---
       case 'Songs':
         return (
           <div className="vertical-album-list">
-            {/* 🚨 [새로 추가] 날씨 추천 섹션 (맨 위에 배치) */}
             {weatherRecommendation && weatherRecommendation.songs.length > 0 && (
                 <section className="album-song-section weather-section" style={{ background: 'linear-gradient(45deg, #2c3e50, #3498db)', padding: '15px', borderRadius: '12px', marginBottom: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
@@ -128,7 +130,6 @@ const LibraryView: React.FC<LibraryViewProps> = ({
                             <p style={{ margin: 0, color: '#e0e0e0', fontSize: '0.9rem' }}>{weatherRecommendation.message}</p>
                         </div>
                     </div>
-                    
                     <div className="wrapping-song-list">
                         {weatherRecommendation.songs.map((song, index) => (
                         <div key={`weather-${song.songId}`} className="song-card-item" onClick={() => onSongClick(index, weatherRecommendation.songs)}>
@@ -140,7 +141,6 @@ const LibraryView: React.FC<LibraryViewProps> = ({
                     </div>
                 </section>
             )}
-            {/* 🚨 [새로 추가] 최신 업데이트 곡 섹션 (맨 위 또는 날씨 아래에 배치) */}
             <section className="album-song-section">
               <h3 className="album-section-title">최신 업데이트 곡 🔥</h3>
               <div className="wrapping-song-list">
@@ -153,7 +153,6 @@ const LibraryView: React.FC<LibraryViewProps> = ({
                 )) : <p className="loading-text">최신 곡을 불러오는 중...</p>}
               </div>
             </section>
-            {/* 1. 추천곡 섹션 */}
             <section className="album-song-section">
               <h3 className="album-section-title">추천곡</h3>
               <div className="wrapping-song-list">
@@ -166,8 +165,6 @@ const LibraryView: React.FC<LibraryViewProps> = ({
                 )) : <p className="loading-text">추천곡을 불러오는 중...</p>}
               </div>
             </section>
-            
-            {/* 2. 인기곡 섹션 */}
             <section className="album-song-section" style={{ marginTop: '2rem' }}>
               <h3 className="album-section-title">인기곡</h3>
               <div className="wrapping-song-list">
@@ -180,13 +177,9 @@ const LibraryView: React.FC<LibraryViewProps> = ({
                 )) : <p className="loading-text">인기곡을 불러오는 중...</p>}
               </div>
             </section>
-
           </div>
         );
-      
       case 'Albums':
-        // 앨범 목록 로직 (기존 songs 의존성 제거를 위해 albums만 사용하여 렌더링하도록 간단히 수정하거나 유지)
-        // 여기서는 albums 정보를 기반으로 간단히 표시합니다.
         return (
            <div className="vertical-album-list">
              {albums.map(album => (
@@ -203,7 +196,6 @@ const LibraryView: React.FC<LibraryViewProps> = ({
              ))}
            </div>
         );
-
       case 'Playlists':
         return (
           <>
@@ -223,7 +215,6 @@ const LibraryView: React.FC<LibraryViewProps> = ({
             </div>
           </>
         );
-        
       default: return null;
     }
   };

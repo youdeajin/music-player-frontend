@@ -7,196 +7,118 @@
 
 /* --- 햄버거 메뉴 --- */
 .menu-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1001;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); z-index: 1001;
 }
 .hamburger-menu {
-  position: fixed;
-  top: 0;
-  left: -300px;
-  width: 280px;
-  height: 100%;
-  background-color: #1e1e1e; /* 조금 더 밝은 배경 */
-  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.3);
-  z-index: 1002;
-  transition: left 0.3s ease-in-out;
-  display: flex;
-  flex-direction: column;
+  position: fixed; top: 0; left: -300px; width: 280px; height: 100%;
+  background-color: #1e1e1e; box-shadow: 4px 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 1002; transition: left 0.3s ease-in-out; display: flex; flex-direction: column;
 }
 .hamburger-menu.open { left: 0; }
 .menu-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.2rem;
-  border-bottom: 1px solid #333;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 1.2rem; border-bottom: 1px solid #333;
 }
 .menu-header span { font-size: 1.2rem; font-weight: 600; color: #fff; }
 .menu-close-btn { background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; }
 .menu-close-btn:hover { color: #fff; }
 .menu-items { list-style: none; padding: 0.5rem 0; margin: 0; flex-grow: 1; overflow-y: auto; }
 .menu-item-button {
-  display: block;
-  width: 100%;
-  background: none;
-  border: none;
-  color: #b3b3b3;
-  font-size: 1.1rem;
-  font-weight: 500;
-  text-align: left;
-  padding: 0.9rem 1.2rem;
-  cursor: pointer;
-  border-left: 4px solid transparent;
-  transition: all 0.2s;
+  display: block; width: 100%; background: none; border: none; color: #b3b3b3;
+  font-size: 1.1rem; font-weight: 500; text-align: left; padding: 0.9rem 1.2rem;
+  cursor: pointer; border-left: 4px solid transparent; transition: all 0.2s;
 }
 .menu-item-button:hover { background-color: #333; color: #fff; }
 .menu-item-button.active {
-  color: #1DB954;
-  border-left-color: #1DB954;
-  background-color: #2a2a2a;
-  font-weight: 700;
+  color: #1DB954; border-left-color: #1DB954; background-color: #2a2a2a; font-weight: 700;
 }
 
 /* --- 헤더 및 검색 --- */
 .library-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 0 0.5rem;
-  position: sticky;
-  top: 0;
-  background-color: #121212; /* 스크롤 시 배경 가림 */
-  z-index: 10;
-  padding-top: 10px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.5rem; padding: 0 0.5rem; position: sticky; top: 0;
+  background-color: #121212; z-index: 10; padding-top: 10px;
 }
 .library-header h1 { font-size: 1.8rem; font-weight: 700; color: #fff; margin: 0; flex-grow: 1; text-align: center; }
 .menu-button, .search-button { background: none; border: none; color: #ccc; font-size: 1.5rem; cursor: pointer; padding: 0.5rem; }
 .menu-button:hover, .search-button:hover { color: #1DB954; transform: scale(1.1); transition: transform 0.2s; }
 
-/* 검색창 활성화 */
+/* 검색창 */
 .search-bar-active {
-  padding: 0.8rem 1rem;
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  display: flex;
-  gap: 0.5rem;
-  position: relative;
+  padding: 0.8rem 1rem; background-color: #1e1e1e; border-radius: 8px;
+  margin-bottom: 1.5rem; display: flex; gap: 0.5rem; position: relative;
 }
 .search-input-active {
-  flex-grow: 1;
-  padding: 0.7rem 1rem;
-  border: 1px solid #444;
-  background-color: #2c2c2c;
-  color: #eee;
-  border-radius: 20px;
-  font-size: 1rem;
-  outline: none;
+  flex-grow: 1; padding: 0.7rem 1rem; border: 1px solid #444;
+  background-color: #2c2c2c; color: #eee; border-radius: 20px; font-size: 1rem; outline: none;
 }
 .search-input-active:focus { border-color: #1DB954; }
-
-/* 검색 결과 드롭다운 */
 .search-results-active {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  position: absolute;
-  top: 100%;
-  left: 1rem; right: 1rem;
-  background-color: #2c2c2c;
-  border: 1px solid #444;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  max-height: 300px;
-  overflow-y: auto;
-  z-index: 20;
+  list-style: none; padding: 0; margin: 0; position: absolute; top: 100%; left: 1rem; right: 1rem;
+  background-color: #2c2c2c; border: 1px solid #444; border-top: none;
+  border-radius: 0 0 8px 8px; max-height: 300px; overflow-y: auto; z-index: 20;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 .search-result-item {
-  padding: 0.8rem 1rem;
-  color: #ddd;
-  cursor: pointer;
-  border-bottom: 1px solid #444;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding: 0.8rem 1rem; color: #ddd; cursor: pointer; border-bottom: 1px solid #444;
+  display: flex; justify-content: space-between; align-items: center;
 }
 .search-result-item:hover { background-color: #3a3a3a; }
 .search-result-title { font-weight: 500; color: #fff; }
 .search-result-artist { font-size: 0.85rem; color: #aaa; }
 
-/* --- 섹션 및 카드 스타일 (줌인 효과 포함) --- */
+/* --- 섹션 및 카드 스타일 --- */
 .vertical-album-list { display: flex; flex-direction: column; gap: 2rem; }
 .album-song-section { margin-bottom: 1rem; }
-.album-section-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; cursor: pointer; }
+
+/* 🚨 [복구됨] 앨범 헤더 스타일 */
+.album-section-header {
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; cursor: pointer;
+  padding: 0.5rem; border-radius: 8px; transition: background-color 0.2s;
+}
+.album-section-header:hover { background-color: #222; }
+
+/* 🚨 [복구됨] 앨범 커버 및 정보 */
+.album-section-cover {
+  width: 60px; height: 60px; object-fit: cover;
+  border-radius: 4px; background-color: #555; flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.album-section-info { overflow: hidden; }
+.album-section-pretitle {
+  font-size: 0.75rem; color: #aaa; margin: 0 0 0.2rem 0;
+  text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;
+}
 .album-section-title { font-size: 1.4rem; font-weight: 700; color: #fff; margin: 0; }
 
+/* 곡 리스트 그리드 */
 .wrapping-song-list {
   display: grid;
-  /* 🚨 [수정] 140px -> 200px로 크기 증가 */
-  /* 1fr 설정으로 인해 남은 공간을 카드들이 균등하게 나눠 가짐 (빈 공간 삭제) */
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-  gap: 1.5rem; /* 간격도 조금 더 시원하게 */
-  padding-top: 0.5rem;
+  gap: 1.5rem; padding-top: 0.5rem;
 }
 
+/* 곡 카드 */
 .song-card-item {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 1rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 부드러운 줌인 */
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  background-color: #1e1e1e; border-radius: 8px; padding: 1rem; cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 .song-card-item:hover {
-  background-color: #282828;
-  
-  /* 🚨 [수정] 1.05 -> 1.15로 변경 (훨씬 더 크게 확대됨) */
-  transform: scale(1.2); 
-  
-  /* 🚨 [추가] 확대될 때 옆에 있는 카드들보다 위로 올라오게 함 */
-  z-index: 10; 
-  position: relative;
-  
-  /* 그림자도 더 깊게 줘서 떠오르는 느낌 강조 */
+  background-color: #282828; transform: scale(1.2); z-index: 10; position: relative;
   box-shadow: 0 15px 30px rgba(0,0,0,0.5); 
 }
 .song-card-item:active {
-  transform: scale(1.1); /* 1.15 -> 1.1로 살짝 줄어들며 '눌린' 느낌 줌 */
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4); /* 그림자도 살짝 줄어듦 */
-  transition-duration: 0.1s; /* 누를 때는 반응이 빨라야 함 */
-}
-/* 노래 카드 내부 스타일 */
-.song-card {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 1rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 부드러운 줌인 */
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transform: scale(1.1); box-shadow: 0 8px 20px rgba(0,0,0,0.4); transition-duration: 0.1s;
 }
 
 .song-card-cover {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 6px;
-  margin-bottom: 0.8rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 6px;
+  margin-bottom: 0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 .song-card-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #fff;
-  margin-top: 10px;
-  margin: 0.5rem 0 0.2rem 0;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 1.1rem; font-weight: 600; color: #fff; margin-top: 10px;
+  margin: 0.5rem 0 0.2rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .song-card-artist { font-size: 0.85rem; color: #b3b3b3; margin: 0; }
 

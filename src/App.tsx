@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
+import axios from './axiosConfig'; // 🚨 [수정] axiosConfig 사용
 
 // 컴포넌트 임포트
 import LibraryView, { WeatherRecommendation } from './components/LibraryView';
@@ -83,13 +83,12 @@ function App() {
     }
   }, [currentSongIndex, playerSongs.length, isPlaying]);
 
-   // 🚨 [수정] 내 재생목록만 불러오기
+   // 내 재생목록만 불러오기
    const refreshPlaylists = useCallback(async () => {
-       if (!currentUser) return; // 로그인 안했으면 실행 X
+       if (!currentUser) return;
 
        try {
-           // 사용자 ID 기반 조회 API 호출
-           const playlistsRes = await axios.get<Playlist[]>(`http://localhost:8080/api/playlists/user/${currentUser.userId}`);
+           const playlistsRes = await axios.get<Playlist[]>(`/api/playlists/user/${currentUser.userId}`);
            const placeholderCover = '/logo192.png';
            setAllPlaylists(
                (Array.isArray(playlistsRes.data) ? playlistsRes.data : [])
@@ -98,11 +97,11 @@ function App() {
        } catch (error) {
            console.error("재생목록 새로고침 실패:", error);
        }
-   }, [currentUser]); // currentUser가 바뀔 때마다 함수 갱신
+   }, [currentUser]);
 
    const loadAlbumSongsToPlayer = useCallback(async (albumId: number, albumTitle: string) => {
        try {
-           const response = await axios.get(`http://localhost:8080/api/albums/${albumId}/songs`);
+           const response = await axios.get(`/api/albums/${albumId}/songs`);
            if (response.data && Array.isArray(response.data)) {
                const songsWithDetails = response.data.map((song: Song) => {
                    const artist = allArtists.find(a => a.artistId === song.artistId);
@@ -135,7 +134,7 @@ function App() {
        setCurrentView('nowPlaying');
    }, []);
 
-   // 🚨 [수정] AI 추천 재생목록 생성 시 userId 포함
+   // AI 추천 재생목록 생성 시 userId 포함
    const handleRecommendationResult = async (recommendedSongs: Song[], prompt: string) => {
      if (!currentUser) {
          alert("재생목록을 생성하려면 로그인이 필요합니다.");
@@ -150,16 +149,16 @@ function App() {
         }
 
         try {
-          const response = await axios.post('http://localhost:8080/api/playlists', {
+          const response = await axios.post('/api/playlists', {
             title: newTitle,
             isPublic: true,
             songIds: songIds,
-            userId: currentUser.userId // 🚨 사용자 ID 추가
+            userId: currentUser.userId
           });
 
           if (response.status === 201) {
             alert(`AI 추천 재생목록 생성 완료!`);
-            await refreshPlaylists(); // 목록 갱신
+            await refreshPlaylists();
             setCurrentView('library');
           }
         } catch (error) {
@@ -174,7 +173,7 @@ function App() {
    const handleDeletePlaylist = useCallback(async (playlistId: number, playlistTitle: string) => {
     if (window.confirm(`정말로 재생목록 '${playlistTitle}'을(를) 삭제하시겠습니까?`)) {
       try {
-        const response = await axios.delete(`http://localhost:8080/api/playlists/${playlistId}`);
+        const response = await axios.delete(`/api/playlists/${playlistId}`);
         if (response.status === 204) { 
           alert(`재생목록 '${playlistTitle}' 삭제 완료!`);
           setCurrentView('library');
@@ -196,16 +195,15 @@ function App() {
 
   // --- 데이터 로딩 useEffect ---
   useEffect(() => {
-    if (!currentUser) return; // 로그아웃 상태면 데이터 로드 안 함
+    if (!currentUser) return;
 
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
-        // 🚨 [수정] 내 재생목록 + 공용 데이터 로드
         const [playlistsRes, albumsRes, artistsRes] = await Promise.all([
-          axios.get<Playlist[]>(`http://localhost:8080/api/playlists/user/${currentUser.userId}`),
-          axios.get<Album[]>('http://localhost:8080/api/albums'),
-          axios.get<Artist[]>('http://localhost:8080/api/artists'),
+          axios.get<Playlist[]>(`/api/playlists/user/${currentUser.userId}`),
+          axios.get<Album[]>('/api/albums'),
+          axios.get<Artist[]>('/api/artists'),
         ]);
 
         const loadedPlaylists = Array.isArray(playlistsRes.data) ? playlistsRes.data : [];
@@ -231,12 +229,11 @@ function App() {
              };
         });
 
-        // 추천/인기/최신 곡 로드
         try {
             const [recRes, popRes, recentRes] = await Promise.all([
-                axios.get<Song[]>('http://localhost:8080/api/songs/random', { params: { limit: 16 } }),
-                axios.get<Song[]>('http://localhost:8080/api/songs/popular', { params: { limit: 16 } }),
-                axios.get<Song[]>('http://localhost:8080/api/songs/recent')
+                axios.get<Song[]>('/api/songs/random', { params: { limit: 16 } }),
+                axios.get<Song[]>('/api/songs/popular', { params: { limit: 16 } }),
+                axios.get<Song[]>('/api/songs/recent')
             ]);
 
             setRecommendedSongs(processSongs(recRes.data));
@@ -246,9 +243,8 @@ function App() {
             console.error("추천/인기곡 로딩 실패:", e);
         }
 
-        // 날씨 추천 로드
         try {
-            const weatherRes = await axios.get('http://localhost:8080/api/recommendations/weather');
+            const weatherRes = await axios.get('/api/recommendations/weather');
             const processedWeatherSongs = weatherRes.data.songs.map((s: any) => {
                  const album = processedAlbums.find(a => a.albumId === s.albumId);
                  const artist = processedArtists.find(ar => ar.artistId === s.artistId);
@@ -276,9 +272,8 @@ function App() {
       }
     };
     fetchInitialData();
-  }, [currentUser]); // currentUser가 설정되면 실행
+  }, [currentUser]);
 
-  // Audio Event Listener
   useEffect(() => {
     const audio = audioRef.current;
     if (audio) {
@@ -318,7 +313,6 @@ function App() {
   }, [currentSong, isPlaying]);
 
 
-  // --- 렌더링 로직 (비로그인 시 로그인 화면) ---
   if (!currentUser) {
     return (
       <div className="App">
@@ -337,7 +331,6 @@ function App() {
     );
   }
 
-  // --- 로그인 후 메인 화면 ---
   return (
     <div className={`App ${currentView === 'nowPlaying' ? 'now-playing-active' : ''}`}>
       <audio ref={audioRef} />
@@ -374,6 +367,7 @@ function App() {
                  popularSongs={popularSongs}
                  songs={[]} 
                  featuredSongs={featuredSongs}
+                 currentUser={currentUser} // 🚨 [필수] 여기서 유저 정보 전달!
                  onPlaylistClick={navigateToPlaylistDetail}
                  onAlbumClick={navigateToAlbumDetail}
                  onSongClick={playSongAtIndex}
