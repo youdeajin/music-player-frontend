@@ -56,4 +56,4 @@ export interface User {
 export type LibraryTab = 'Songs' | 'Albums' | 'Playlists';
 
 // 메인 화면 뷰 종류
-export type View = 'library' | 'playlistDetail' | 'nowPlaying';
+export type View = 'library' | 'playlistDetail' | 'nowPlaying' | 'recentPlaylist';

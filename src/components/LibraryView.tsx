@@ -29,6 +29,7 @@ interface LibraryViewProps {
   onSongClick: (index: number, sourceList: Song[]) => void;
   refreshPlaylists: () => Promise<void>;
   onSearchResultClick: (song: Song) => void;
+  onRecentPlaylistClick: () => void;
 }
 
 const LibraryView: React.FC<LibraryViewProps> = ({
@@ -37,7 +38,8 @@ const LibraryView: React.FC<LibraryViewProps> = ({
   currentUser, // 🚨 [추가] 여기서 받음
   onPlaylistClick, onAlbumClick, onSongClick,
   refreshPlaylists,
-  onSearchResultClick
+  onSearchResultClick,
+  onRecentPlaylistClick
 }) => {
   const [activeTab, setActiveTab] = useState<LibraryTab>('Songs');
   
@@ -206,6 +208,11 @@ const LibraryView: React.FC<LibraryViewProps> = ({
               </button>
             </div>
             <div className="library-grid">
+              {/* 최근 재생 목록 버튼 추가 */}
+              <div className="grid-item" onClick={onRecentPlaylistClick} style={{ cursor: 'pointer', border: '2px dashed #666', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🎵</div>
+                <p className="grid-item-title" style={{ textAlign: 'center' }}>최근에 들은 곡</p>
+              </div>
               {playlists.length > 0 ? playlists.map((playlist) => (
                 <div key={`playlist-${playlist.playlistId}`} className="grid-item" onClick={() => onPlaylistClick(playlist.playlistId)}>
                   <img src={playlist.coverUrl || '/logo192.png'} alt={playlist.title} className="grid-item-cover" />
