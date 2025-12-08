@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+// 🚨 [수정 1] 설정된 axiosConfig를 불러옵니다.
+import axios from '../axiosConfig'; 
 import { User } from '../types';
 import './Auth.css';
 
@@ -18,16 +19,16 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onSwitchToSignup 
       return;
     }
     try {
-      // 🚨 [중요] 8080 포트 사용
-      const response = await axios.post('http://localhost:8080/api/auth/login', {
+      // 🚨 [수정 2] localhost 주소를 지우고 뒷부분만 남깁니다.
+      // (axiosConfig에 있는 Ngrok 주소가 자동으로 붙습니다)
+      const response = await axios.post('/api/auth/login', {
         email,
         password
       });
 
       if (response.status === 200) {
-        // 🚨 [수정] 백엔드에서 받은 userId를 포함하여 User 객체 생성
         const userData: User = {
-          userId: response.data.userId, // 백엔드의 AuthController가 이 값을 줘야 함
+          userId: response.data.userId,
           email: response.data.email,
           nickname: response.data.nickname
         };
@@ -36,7 +37,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onSwitchToSignup 
       }
     } catch (error: any) {
       console.error("로그인 실패:", error);
-      alert(error.response?.data || "로그인에 실패했습니다.");
+      // 에러 메시지 처리
+      const errorMsg = error.response?.data?.error || error.response?.data || "로그인에 실패했습니다.";
+      alert(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
     }
   };
 

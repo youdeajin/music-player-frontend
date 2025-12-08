@@ -9,6 +9,7 @@ import MiniPlayer from './components/MiniPlayer';
 import Chatbot from './components/Chatbot';
 import LoginView from './components/LoginView';
 import SignupView from './components/SignupView';
+import RecentPlaylistView from './components/RecentPlaylistView';
 
 // 공유 타입 임포트
 import { Song, Playlist, View, Artist, Album, User } from './types';
@@ -42,6 +43,20 @@ function App() {
   const [recentSongs, setRecentSongs] = useState<Song[]>([]);
   const [featuredSongs, setFeaturedSongs] = useState<Song[]>([]);
 
+  // 재생 기록 저장 함수
+  const recordPlayHistory = useCallback(async (songId: number) => {
+    if (!currentUser) return;
+    
+    try {
+      await axios.post('/api/play-history', {
+        userId: currentUser.userId,
+        songId: songId
+      });
+    } catch (error) {
+      console.error("재생 기록 저장 실패:", error);
+    }
+  }, [currentUser]);
+
   // 플레이어 관련 함수들
   const playSongAtIndex = useCallback((index: number, songList: Song[] = playerSongs) => {
     if (songList && songList[index]) {
@@ -51,8 +66,13 @@ function App() {
       setCurrentSongIndex(index);
       setIsPlaying(true);
       setCurrentView('nowPlaying');
+      
+      // 재생 기록 저장
+      if (songList[index]?.songId) {
+        recordPlayHistory(songList[index].songId);
+      }
     }
-  }, [playerSongs]);
+  }, [playerSongs, recordPlayHistory]);
 
   const handlePlayPause = useCallback(() => {
     if (!audioRef.current) return;
@@ -68,7 +88,12 @@ function App() {
     const nextIndex = (currentSongIndex + 1) % playerSongs.length;
     setCurrentSongIndex(nextIndex);
     setIsPlaying(true);
-  }, [currentSongIndex, playerSongs.length]);
+    
+    // 재생 기록 저장
+    if (playerSongs[nextIndex]?.songId) {
+      recordPlayHistory(playerSongs[nextIndex].songId);
+    }
+  }, [currentSongIndex, playerSongs, recordPlayHistory]);
 
   const handlePrev = useCallback(() => {
     if (playerSongs.length === 0) return;
@@ -132,7 +157,12 @@ function App() {
        setCurrentSongIndex(0);
        setIsPlaying(true);
        setCurrentView('nowPlaying');
-   }, []);
+       
+       // 재생 기록 저장
+       if (songToPlay?.songId) {
+         recordPlayHistory(songToPlay.songId);
+       }
+   }, [recordPlayHistory]);
 
    // AI 추천 재생목록 생성 시 userId 포함
    const handleRecommendationResult = async (recommendedSongs: Song[], prompt: string) => {
@@ -191,6 +221,7 @@ function App() {
    const navigateToPlaylistDetail = (playlistId: number) => { setSelectedPlaylistId(playlistId); setSelectedAlbumId(null); setSelectedArtistId(null); setCurrentView('playlistDetail'); };
    const navigateToAlbumDetail = (albumId: number) => { setSelectedAlbumId(albumId); setSelectedPlaylistId(null); setSelectedArtistId(null); setCurrentView('playlistDetail'); };
    const navigateToNowPlaying = () => { if(currentSong) setCurrentView('nowPlaying'); };
+   const navigateToRecentPlaylist = () => { setCurrentView('recentPlaylist'); };
 
 
   // --- 데이터 로딩 useEffect ---
@@ -373,6 +404,7 @@ function App() {
                  onSongClick={playSongAtIndex}
                  refreshPlaylists={refreshPlaylists}
                  onSearchResultClick={playSingleSong}
+                 onRecentPlaylistClick={navigateToRecentPlaylist}
                />
              )}
              {currentView === 'playlistDetail' && (selectedPlaylistId || selectedAlbumId) && (
@@ -387,6 +419,17 @@ function App() {
                       allArtists={allArtists}
                       allAlbums={allAlbums}
                       onDeletePlaylist={handleDeletePlaylist}
+                  />
+              )}
+              {currentView === 'recentPlaylist' && currentUser && (
+                  <RecentPlaylistView
+                      userId={currentUser.userId}
+                      onSongClick={playSongAtIndex}
+                      onBackClick={navigateToLibrary}
+                      currentSongId={currentSong?.songId}
+                      isPlaying={isPlaying}
+                      allArtists={allArtists}
+                      allAlbums={allAlbums}
                   />
               )}
               {currentView === 'nowPlaying' && currentSong && (

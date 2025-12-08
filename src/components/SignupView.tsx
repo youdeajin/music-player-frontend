@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+// 🚨 [수정 1] 설정된 axiosConfig를 불러와야 Ngrok 주소가 적용됩니다!
+import axios from '../axiosConfig'; 
 import './Auth.css';
 
 interface SignupViewProps {
@@ -17,8 +18,9 @@ const SignupView: React.FC<SignupViewProps> = ({ onSwitchToLogin }) => {
       return;
     }
     try {
-      // 🚨 [수정] 주소 변경 (8443 -> 8080, https -> http)
-      await axios.post('http://localhost:8080/api/auth/join', {
+      // 🚨 [수정 2] 앞에 주소를 지우고 뒷부분만 남깁니다.
+      // (axiosConfig에 설정된 Ngrok 주소가 자동으로 앞에 붙습니다)
+      await axios.post('/api/auth/join', {
         email,
         password,
         nickname
@@ -28,7 +30,9 @@ const SignupView: React.FC<SignupViewProps> = ({ onSwitchToLogin }) => {
       onSwitchToLogin(); // 로그인 화면으로 전환
     } catch (error: any) {
       console.error("회원가입 실패:", error);
-      alert(error.response?.data || "회원가입 중 오류가 발생했습니다.");
+      // 에러 메시지 처리 강화
+      const errorMsg = error.response?.data || "회원가입 중 오류가 발생했습니다.";
+      alert(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
     }
   };
 
