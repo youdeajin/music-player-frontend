@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import axios from '../axiosConfig';
+import axiosLib from 'axios';
 // types.ts 파일에서 공유 타입 임포트
-import { Song, Playlist, Artist } from '../types'; 
-import './NowPlayingView.css';
+import { Song, Playlist, Artist } from '../types';
+import { PlayIcon, PauseIcon, NextIcon, PrevIcon, ShuffleIcon, RepeatIcon } from './Icons';
 
 // App.tsx로부터 전달받을 Props 타입 정의
 interface NowPlayingViewProps {
@@ -107,8 +108,8 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
         setIsAddingSong(true); // 로딩 시작
         setShowPlaylistModal(true); // 모달 표시
         try {
-            // 백엔드 API 호출하여 모든 재생목록 가져오기 (HTTPS 사용)
-            const response = await axios.get<Playlist[]>('http://localhost:8080/api/playlists');
+            // 백엔드 API 호출하여 모든 재생목록 가져오기
+            const response = await axios.get<Playlist[]>('/api/playlists');
             setAvailablePlaylists(Array.isArray(response.data) ? response.data : []);
         } catch (error) {
             console.error("플레이리스트 로드 실패:", error);
@@ -123,15 +124,15 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
     const handleAddSongToSelectedPlaylist = async (playlistId: number) => {
         setIsAddingSong(true); // 버튼 로딩 상태
         try {
-            // 백엔드 API 호출 (POST /api/playlists/{id}/songs) (HTTPS 사용)
-            await axios.post(`http://localhost:8080/api/playlists/${playlistId}/songs`, {
+            // 백엔드 API 호출 (POST /api/playlists/{id}/songs)
+            await axios.post(`/api/playlists/${playlistId}/songs`, {
                 songId: song.songId // 현재 재생 중인 곡의 ID
             });
             alert('곡이 재생목록에 추가되었습니다.');
             setShowPlaylistModal(false); // 모달 닫기
         } catch (error) {
             console.error("재생목록에 곡 추가 실패:", error);
-            if (axios.isAxiosError(error) && error.response?.status === 400) {
+            if (axiosLib.isAxiosError(error) && error.response?.status === 400) {
                  alert('곡을 추가하는 데 실패했습니다. (이미 목록에 있을 수 있습니다)');
             } else {
                  alert('곡을 추가하는 데 실패했습니다.');
@@ -144,25 +145,35 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
 
     // --- 렌더링 로직 ---
     return (
-        <div className="now-playing-container">
+        <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-dark-bg via-gray-800 to-dark-bg flex flex-col items-center justify-center p-8 box-border text-gray-200 z-[2000]">
             {/* 헤더: 뒤로가기 버튼 */}
-            <div className="now-playing-header">
-                <button onClick={onBackClick} className="back-button-np">↓</button>
+            <div className="absolute top-8 left-8">
+                <button 
+                  onClick={onBackClick} 
+                  className="bg-white/10 border-none rounded-full w-10 h-10 text-white text-2xl cursor-pointer flex justify-center items-center transition-colors hover:bg-white/20"
+                >
+                    ↓
+                </button>
             </div>
 
             {/* 큰 앨범 아트 */}
-            <img src={song.albumCoverUrl || '/logo192.png'} alt="앨범 아트" className="album-art-large" />
+            <img 
+              src={song.albumCoverUrl || '/logo192.png'} 
+              alt="앨범 아트" 
+              className={`w-80 h-80 rounded-full object-cover mb-8 shadow-2xl ${isPlaying ? 'animate-spin-slow' : ''}`}
+              style={{ animationDuration: '20s' }}
+            />
 
             {/* 곡 정보 */}
-            <div className="song-info-large">
-                <h2>{song.title}</h2>
+            <div className="text-center mb-8">
+                <h2 className="text-3xl font-extrabold mb-2 text-white">{song.title}</h2>
                 {/* 🚨 [수정] artistId 대신 artistName 상태 변수 사용 */}
-                <p>{artistName}</p>
+                <p className="text-xl text-gray-400">{artistName}</p>
             </div>
 
             {/* 탐색 바 */}
-            <div className="progress-bar-container">
-                <span className="time-display">{formatTime(currentTime)}</span>
+            <div className="w-full max-w-lg flex items-center gap-4 mb-8">
+                <span className="text-sm text-gray-400 min-w-[40px]">{formatTime(currentTime)}</span>
                 <input
                     type="range"
                     min="0"
@@ -171,51 +182,95 @@ const NowPlayingView: React.FC<NowPlayingViewProps> = ({
                     onChange={handleSeekChange}
                     onMouseDown={handleSeekMouseDown}
                     onMouseUp={handleSeekMouseUp}
-                    className="seek-bar-large"
+                    className="flex-grow h-1.5 appearance-none bg-gray-600 rounded-full outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer"
                     disabled={!duration || duration === 0} // 곡 없거나 길이 0이면 비활성화
                 />
-                <span className="time-display">{formatTime(duration)}</span>
+                <span className="text-sm text-gray-400 min-w-[40px]">{formatTime(duration)}</span>
             </div>
 
             {/* 컨트롤 버튼 */}
-            <div className="controls-large">
-                <button className="control-button shuffle">🔀</button> {/* TODO: 셔플 기능 */}
-                <button onClick={onPrev} className="control-button prev">⏮️</button>
-                <button onClick={onPlayPause} className="control-button play-pause">
-                    {isPlaying ? '⏸️' : '▶️'}
+            <div className="flex items-center gap-6 mb-12">
+                <button className="bg-gray-800/60 hover:bg-gray-700/80 border-none text-white cursor-pointer p-3 rounded-full transition-all duration-300 hover:scale-110 hover:text-spotify-green hover:shadow-lg hover:shadow-spotify-green/30 active:scale-95 flex items-center justify-center w-14 h-14 backdrop-blur-sm group">
+                    <ShuffleIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </button> {/* TODO: 셔플 기능 */}
+                <button 
+                  onClick={onPrev} 
+                  className="bg-gray-800/60 hover:bg-gray-700/80 border-none text-white cursor-pointer p-3 rounded-full transition-all duration-300 hover:scale-110 hover:text-spotify-green hover:shadow-lg hover:shadow-spotify-green/30 active:scale-95 flex items-center justify-center w-14 h-14 backdrop-blur-sm group"
+                >
+                    <PrevIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
                 </button>
-                <button onClick={onNext} className="control-button next">⏭️</button>
-                <button className="control-button repeat">🔁</button> {/* TODO: 반복 기능 */}
+                <button 
+                  onClick={onPlayPause} 
+                  className="bg-white hover:bg-gray-100 text-black rounded-full w-24 h-24 flex justify-center items-center transition-all duration-300 hover:scale-110 active:scale-95 shadow-2xl hover:shadow-3xl relative overflow-hidden group"
+                >
+                    <span className="relative z-10 flex items-center justify-center">
+                        {isPlaying ? (
+                            <PauseIcon className="w-10 h-10 group-hover:scale-110 transition-transform" />
+                        ) : (
+                            <PlayIcon className="w-10 h-10 ml-1 group-hover:scale-110 transition-transform" />
+                        )}
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/0 to-white/0 group-hover:from-white/20 group-hover:via-white/10 group-hover:to-white/20 transition-all duration-300 rounded-full"></div>
+                </button>
+                <button 
+                  onClick={onNext} 
+                  className="bg-gray-800/60 hover:bg-gray-700/80 border-none text-white cursor-pointer p-3 rounded-full transition-all duration-300 hover:scale-110 hover:text-spotify-green hover:shadow-lg hover:shadow-spotify-green/30 active:scale-95 flex items-center justify-center w-14 h-14 backdrop-blur-sm group"
+                >
+                    <NextIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                </button>
+                <button className="bg-gray-800/60 hover:bg-gray-700/80 border-none text-white cursor-pointer p-3 rounded-full transition-all duration-300 hover:scale-110 hover:text-spotify-green hover:shadow-lg hover:shadow-spotify-green/30 active:scale-95 flex items-center justify-center w-14 h-14 backdrop-blur-sm group">
+                    <RepeatIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </button> {/* TODO: 반복 기능 */}
             </div>
 
             {/* 추가 기능 버튼 (좋아요, 재생목록 추가) */}
-            <div className="now-playing-footer">
-                {<button className="like-button"></button> /* TODO: 좋아요 기능 */}
-                <button onClick={handleOpenAddToPlaylist} className="add-to-playlist-button" disabled={isAddingSong} title="재생목록에 추가">
+            <div className="flex gap-8">
+                {<button className="bg-transparent border-none text-gray-400 text-2xl cursor-pointer hover:text-spotify-green transition-colors"></button> /* TODO: 좋아요 기능 */}
+                <button 
+                  onClick={handleOpenAddToPlaylist} 
+                  className="bg-transparent border-none text-gray-400 text-2xl cursor-pointer hover:text-spotify-green transition-colors disabled:opacity-50" 
+                  disabled={isAddingSong} 
+                  title="재생목록에 추가"
+                >
                     {isAddingSong ? '...' : '+'}
                 </button>
             </div>
 
             {/* 재생목록 선택 모달 (showPlaylistModal이 true일 때만 표시) */}
             {showPlaylistModal && (
-                <div className="playlist-modal-overlay" onClick={() => setShowPlaylistModal(false)}>
+                <div 
+                  className="fixed inset-0 bg-black/70 flex justify-center items-center z-[3000]" 
+                  onClick={() => setShowPlaylistModal(false)}
+                >
                     {/* 모달 컨텐츠 클릭 시 닫힘 방지 */}
-                    <div className="playlist-modal" onClick={(e) => e.stopPropagation()}>
-                        <h3>재생목록에 추가</h3>
+                    <div 
+                      className="bg-dark-card rounded-lg p-6 w-96 max-h-[500px] shadow-2xl border border-gray-700" 
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-xl font-bold text-white mb-4">재생목록에 추가</h3>
                         {/* 목록 로딩 중 표시 */}
-                        {isAddingSong && <p style={{textAlign: 'center', margin: '1rem 0'}}>로딩 중...</p>}
-                        <ul>
+                        {isAddingSong && <p className="text-center my-4 text-gray-400">로딩 중...</p>}
+                        <ul className="list-none p-0 m-0 max-h-[300px] overflow-y-auto">
                             {!isAddingSong && availablePlaylists.length > 0 ? (
                                 availablePlaylists.map(pl => (
-                                    <li key={pl.playlistId} onClick={() => handleAddSongToSelectedPlaylist(pl.playlistId)}>
+                                    <li 
+                                      key={pl.playlistId} 
+                                      onClick={() => handleAddSongToSelectedPlaylist(pl.playlistId)}
+                                      className="px-4 py-3 text-gray-200 cursor-pointer hover:bg-gray-700 rounded transition-colors"
+                                    >
                                         {pl.title}
                                     </li>
                                 ))
                             ) : !isAddingSong ? (
-                                <li>생성된 재생목록이 없습니다.</li>
+                                <li className="px-4 py-3 text-gray-400 text-center">생성된 재생목록이 없습니다.</li>
                             ) : null}
                         </ul>
-                        <button onClick={() => setShowPlaylistModal(false)} className="modal-close-btn">닫기</button>
+                        <button 
+                          onClick={() => setShowPlaylistModal(false)} 
+                          className="w-full mt-4 px-4 py-2 bg-gray-700 text-white border-none rounded cursor-pointer hover:bg-gray-600 transition-colors"
+                        >
+                            닫기
+                        </button>
                     </div>
                 </div>
             )}

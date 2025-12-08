@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../axiosConfig';
 import { Song } from '../types';
-import './PlaylistDetailView.css'; // 재사용 가능한 스타일
+import { PlayIcon, ShuffleIcon } from './Icons';
 
 interface RecentPlaylistViewProps {
   userId: number;
@@ -41,12 +41,23 @@ const RecentPlaylistView: React.FC<RecentPlaylistViewProps> = ({
         const songsData = response.data || [];
         
         const processedSongs = songsData.map(song => {
-          const album = allAlbums.find(a => a.albumId === song.albumId);
-          const artist = allArtists.find(a => a.artistId === song.artistId);
+          // albumId와 artistId가 유효한지 확인하고 매핑
+          const album = song.albumId ? allAlbums.find(a => a && a.albumId === song.albumId) : null;
+          const artist = song.artistId ? allArtists.find(a => a && a.artistId === song.artistId) : null;
+          
+          // 디버깅을 위한 로그 (개발 환경에서만)
+          if (process.env.NODE_ENV === 'development' && !artist && song.artistId) {
+            console.warn(`Artist not found for song ${song.songId}, artistId: ${song.artistId}`, {
+              availableArtists: allArtists.map(a => ({ id: a.artistId, name: a.name })),
+              songTitle: song.title
+            });
+          }
+          
+          // 이미 artistName이나 albumCoverUrl이 있으면 사용, 없으면 매핑
           return {
             ...song,
-            albumCoverUrl: album?.coverUrl || '/logo192.png',
-            artistName: artist?.name || `ID ${song.artistId}`
+            albumCoverUrl: song.albumCoverUrl || album?.coverUrl || '/logo192.png',
+            artistName: song.artistName || artist?.name || (song.artistId ? `Artist ID ${song.artistId}` : 'Unknown Artist')
           };
         });
 
@@ -71,7 +82,8 @@ const RecentPlaylistView: React.FC<RecentPlaylistViewProps> = ({
       }
     };
 
-    if (userId) {
+    // allAlbums와 allArtists가 로드된 후에만 실행
+    if (userId && allAlbums.length > 0 && allArtists.length > 0) {
       fetchRecentSongs();
     }
   }, [userId, allAlbums, allArtists]);
@@ -98,42 +110,77 @@ const RecentPlaylistView: React.FC<RecentPlaylistViewProps> = ({
 
   if (isLoading) {
     return (
-      <div className="playlist-detail-container loading-state">
-        <button onClick={onBackClick} className="back-button">←</button>
-        <p>최근 재생 기록 로딩 중...</p>
+      <div className="p-8 text-gray-200 bg-gradient-to-b from-dark-card to-dark-bg min-h-full flex flex-col items-center justify-center">
+        <button 
+          onClick={onBackClick} 
+          className="absolute top-8 left-8 bg-transparent border-none text-gray-400 text-3xl cursor-pointer transition-colors hover:text-white"
+        >
+          ←
+        </button>
+        <p className="text-gray-400">최근 재생 기록 로딩 중...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="playlist-detail-container loading-state">
-        <button onClick={onBackClick} className="back-button">←</button>
-        <p>{error}</p>
-        <button onClick={onBackClick}>뒤로가기</button>
+      <div className="p-8 text-gray-200 bg-gradient-to-b from-dark-card to-dark-bg min-h-full flex flex-col items-center justify-center">
+        <button 
+          onClick={onBackClick} 
+          className="absolute top-8 left-8 bg-transparent border-none text-gray-400 text-3xl cursor-pointer transition-colors hover:text-white"
+        >
+          ←
+        </button>
+        <p className="text-gray-400">{error}</p>
+        <button 
+          onClick={onBackClick}
+          className="mt-4 px-4 py-2 bg-gray-600 text-white border-none rounded cursor-pointer hover:bg-gray-500"
+        >
+          뒤로가기
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="playlist-detail-container">
-      <div className="playlist-detail-header">
-        <button onClick={onBackClick} className="back-button">←</button>
-        <div className="playlist-detail-info">
-          <h2 className="playlist-detail-title">최근에 들은 곡</h2>
-          <p className="playlist-detail-description">{songs.length}곡</p>
+    <div className="p-8 text-gray-200 bg-gradient-to-b from-dark-card to-dark-bg min-h-full">
+      <div className="flex items-end gap-8 mb-8 relative">
+        <button 
+          onClick={onBackClick} 
+          className="absolute -top-5 -left-2.5 bg-transparent border-none text-gray-400 text-3xl cursor-pointer transition-colors hover:text-white"
+        >
+          ←
+        </button>
+        <div className="flex flex-col">
+          <h2 className="text-5xl font-extrabold m-0 mb-4 text-white">최근에 들은 곡</h2>
+          <p className="text-base text-gray-300">{songs.length}곡</p>
         </div>
-        <div className="playlist-detail-actions">
-          <button onClick={handlePlayAll} className="play-button" disabled={songs.length === 0}>
-            ▶ Play
+        <div className="flex items-center gap-4 mt-4 ml-auto">
+          <button 
+            onClick={handlePlayAll} 
+            className="px-8 py-3.5 bg-gradient-to-r from-spotify-green to-green-500 text-white border-none rounded-full font-bold text-base cursor-pointer transition-all duration-300 hover:from-spotify-green-hover hover:to-green-400 hover:scale-105 hover:shadow-xl hover:shadow-spotify-green/50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group flex items-center gap-2"
+            disabled={songs.length === 0}
+          >
+            <span className="relative z-10 flex items-center gap-2.5">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              <span>Play</span>
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
           </button>
-          <button onClick={handleShufflePlay} className="shuffle-button" disabled={songs.length === 0}>
-            🔀 Shuffle
+          <button 
+            onClick={handleShufflePlay} 
+            className="px-8 py-3.5 bg-gray-800/60 hover:bg-gray-700/80 text-white border border-gray-700/50 rounded-full font-bold text-base cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-gray-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm flex items-center gap-2"
+            disabled={songs.length === 0}
+          >
+            <ShuffleIcon className="w-5 h-5" />
+            <span>Shuffle</span>
           </button>
         </div>
       </div>
 
-      <ul className="playlist-detail-songs">
+      <ul className="list-none p-0 m-0">
         {songs.length > 0 ? (
           songs.map((song, index) => {
             const isActive = currentSongId === song.songId;
@@ -142,14 +189,19 @@ const RecentPlaylistView: React.FC<RecentPlaylistViewProps> = ({
             return (
               <li
                 key={`recent-song-${song.songId}-${index}`}
-                className={`song-item ${isActive ? 'active' : ''}`}
+                className={`flex items-center px-4 py-3 rounded transition-colors hover:bg-white/10 border-b border-white/5 ${
+                  isActive ? 'bg-white/5' : ''
+                }`}
               >
-                <div className="song-item-clickable-area" onClick={() => onSongClick(index, songs)}>
-                  <div className="song-index">
+                <div 
+                  className="flex items-center flex-grow cursor-pointer" 
+                  onClick={() => onSongClick(index, songs)}
+                >
+                  <div className="text-gray-400 w-8 text-center mr-4">
                     {isPlayingNow ? (
-                      <span className="playing-indicator">▶</span>
+                      <span className="text-spotify-green">▶</span>
                     ) : isActive ? (
-                      <span className="paused-indicator">⏸️</span>
+                      <span>⏸️</span>
                     ) : (
                       <span>{index + 1}</span>
                     )}
@@ -157,19 +209,21 @@ const RecentPlaylistView: React.FC<RecentPlaylistViewProps> = ({
                   <img
                     src={song.albumCoverUrl || '/logo192.png'}
                     alt="커버"
-                    className="song-item-cover-small"
+                    className="w-10 h-10 rounded mr-4 object-cover"
                   />
-                  <div className="song-item-info">
-                    <p className="song-item-title">{song.title}</p>
-                    <p className="song-item-subtitle">{song.artistName}</p>
+                  <div className="flex flex-col flex-grow">
+                    <p className={`font-medium text-base m-0 ${isActive ? 'text-spotify-green' : 'text-white'}`}>
+                      {song.title}
+                    </p>
+                    <p className="text-sm text-gray-400 m-0">{song.artistName}</p>
                   </div>
                 </div>
-                <span className="song-item-duration">{formatTime(song.durationSeconds)}</span>
+                <span className="text-gray-400">{formatTime(song.durationSeconds)}</span>
               </li>
             );
           })
         ) : (
-          <li className="no-songs">최근에 들은 곡이 없습니다.</li>
+          <li className="text-gray-400 text-center py-8">최근에 들은 곡이 없습니다.</li>
         )}
       </ul>
     </div>

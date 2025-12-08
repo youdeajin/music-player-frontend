@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 // 🚨 [수정 1] 설정된 axiosConfig를 불러와야 Ngrok 주소가 적용됩니다!
 import axios from '../axiosConfig'; 
-import './Auth.css';
 
 interface SignupViewProps {
   onSwitchToLogin: () => void;
@@ -37,23 +36,78 @@ const SignupView: React.FC<SignupViewProps> = ({ onSwitchToLogin }) => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-box">
-        <h2 className="auth-title">회원가입</h2>
-        <input 
-          type="email" placeholder="이메일" className="auth-input"
-          value={email} onChange={(e) => setEmail(e.target.value)}
-        />
-        <input 
-          type="password" placeholder="비밀번호" className="auth-input"
-          value={password} onChange={(e) => setPassword(e.target.value)}
-        />
-        <input 
-          type="text" placeholder="닉네임" className="auth-input"
-          value={nickname} onChange={(e) => setNickname(e.target.value)}
-        />
-        <button onClick={handleSignup} className="auth-button">가입하기</button>
-        <button onClick={onSwitchToLogin} className="auth-switch-btn">
+    <div className="flex flex-col items-center h-screen bg-gradient-to-br from-dark-bg via-gray-900 to-dark-bg overflow-hidden relative">
+      {/* 배경 애니메이션 효과 */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-spotify-green/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
+
+      {/* 앱 이름/로고 - 상단 중앙 */}
+      <div className="relative z-10 mt-16 mb-8 text-center animate-fade-in">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-spotify-green to-green-400 rounded-2xl flex items-center justify-center shadow-2xl shadow-spotify-green/50 transform rotate-12 hover:rotate-0 transition-transform duration-500">
+            <span className="text-4xl">🎵</span>
+          </div>
+          <h1 className="text-6xl font-black bg-gradient-to-r from-spotify-green via-green-400 to-emerald-300 bg-clip-text text-transparent tracking-tight">
+            MeloWave
+          </h1>
+        </div>
+        <p className="text-gray-400 text-lg font-light">당신의 음악을 발견하세요</p>
+      </div>
+
+      {/* 회원가입 폼 - 아래로 내림 */}
+      <div className="relative z-10 w-full max-w-md px-8 py-10 bg-dark-card/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-800/50 mt-8 animate-slide-up">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-white mb-2">회원가입</h2>
+          <p className="text-gray-400 text-sm">새로운 음악 여정을 시작하세요</p>
+        </div>
+        
+        <div className="space-y-5">
+          <div className="relative group">
+            <input 
+              type="email" 
+              placeholder="이메일" 
+              className="w-full px-4 py-3.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-spotify-green focus:border-spotify-green transition-all duration-300 hover:border-gray-600"
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-spotify-green/0 to-green-400/0 group-focus-within:from-spotify-green/10 group-focus-within:to-green-400/10 pointer-events-none transition-all duration-300"></div>
+          </div>
+          <div className="relative group">
+            <input 
+              type="password" 
+              placeholder="비밀번호" 
+              className="w-full px-4 py-3.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-spotify-green focus:border-spotify-green transition-all duration-300 hover:border-gray-600"
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-spotify-green/0 to-green-400/0 group-focus-within:from-spotify-green/10 group-focus-within:to-green-400/10 pointer-events-none transition-all duration-300"></div>
+          </div>
+          <div className="relative group">
+            <input 
+              type="text" 
+              placeholder="닉네임" 
+              className="w-full px-4 py-3.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-spotify-green focus:border-spotify-green transition-all duration-300 hover:border-gray-600"
+              value={nickname} 
+              onChange={(e) => setNickname(e.target.value)}
+            />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-spotify-green/0 to-green-400/0 group-focus-within:from-spotify-green/10 group-focus-within:to-green-400/10 pointer-events-none transition-all duration-300"></div>
+          </div>
+        </div>
+
+        <button 
+          onClick={handleSignup} 
+          className="w-full mt-6 py-3.5 bg-gradient-to-r from-spotify-green to-green-500 text-white font-bold rounded-xl hover:from-spotify-green-hover hover:to-green-400 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-spotify-green/30 hover:shadow-xl hover:shadow-spotify-green/50 relative overflow-hidden group"
+        >
+          <span className="relative z-10">가입하기</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+        </button>
+        
+        <button 
+          onClick={onSwitchToLogin} 
+          className="w-full mt-4 text-center text-gray-400 hover:text-white text-sm transition-colors underline-offset-2 hover:underline"
+        >
           이미 계정이 있으신가요? 로그인
         </button>
       </div>

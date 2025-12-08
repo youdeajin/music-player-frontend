@@ -19,7 +19,7 @@ import './index.css';
 function App() {
   // --- 로그인 관련 상태 ---
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [authView, setAuthView] = useState<'login' | 'signup'>('login');
+  const [authView, setAuthView] = useState<'login' | 'signup'>('signup');
 
   // --- 기존 상태 변수 ---
   const [currentView, setCurrentView] = useState<View>('library');
@@ -363,11 +363,11 @@ function App() {
   }
 
   return (
-    <div className={`App ${currentView === 'nowPlaying' ? 'now-playing-active' : ''}`}>
+    <div className={`flex flex-col w-full h-screen overflow-hidden relative ${currentView === 'nowPlaying' ? 'now-playing-active' : ''}`}>
       <audio ref={audioRef} />
 
-      <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1005 }}>
-        <span style={{ color: '#aaa', marginRight: '10px' }}>{currentUser.nickname}님</span>
+      <div className="absolute top-3 right-3 z-[1005] flex items-center gap-2.5 bg-dark-card/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-800/50 shadow-lg">
+        <span className="text-gray-300 text-sm font-medium">{currentUser.nickname}님</span>
         <button 
           onClick={() => {
             if(window.confirm("로그아웃 하시겠습니까?")) {
@@ -376,17 +376,19 @@ function App() {
               setIsPlaying(false);
             }
           }}
-          style={{ background: '#333', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+          className="bg-gray-700/80 text-white border-none px-3 py-1.5 rounded-md cursor-pointer hover:bg-gray-600 transition-colors text-sm font-medium"
         >
           로그아웃
         </button>
       </div>
 
       {isLoading ? (
-        <div className="loading-state-full"><p>앱 로딩 중...</p></div>
+        <div className="flex justify-center items-center min-h-[30vh] text-lg text-gray-400 text-center p-8">
+          <p>앱 로딩 중...</p>
+        </div>
       ) : (
         <>
-          <div className="main-view">
+          <div className="flex-grow overflow-y-auto pb-[150px] bg-dark-bg">
              {currentView === 'library' && (
                <LibraryView
                  playlists={allPlaylists}
