@@ -48,6 +48,7 @@ export interface User {
   userId: number; // 🚨 [추가] 필수!
   email: string;
   nickname: string;
+  joinedAt?: string; // 관리자 페이지에서 사용
 }
 
 // --- 앱 내부 UI 상태 타입 ---
@@ -56,4 +57,4 @@ export interface User {
 export type LibraryTab = 'Songs' | 'Albums' | 'Playlists';
 
 // 메인 화면 뷰 종류
-export type View = 'library' | 'playlistDetail' | 'nowPlaying' | 'recentPlaylist';
+export type View = 'library' | 'playlistDetail' | 'nowPlaying' | 'recentPlaylist' | 'admin';

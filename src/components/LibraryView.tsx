@@ -29,6 +29,7 @@ interface LibraryViewProps {
   refreshPlaylists: () => Promise<void>;
   onSearchResultClick: (song: Song) => void;
   onRecentPlaylistClick: () => void;
+  onAdminClick?: () => void; // 관리자 페이지 이동
 }
 
 const LibraryView: React.FC<LibraryViewProps> = ({
@@ -38,7 +39,8 @@ const LibraryView: React.FC<LibraryViewProps> = ({
   onPlaylistClick, onAlbumClick, onSongClick,
   refreshPlaylists,
   onSearchResultClick,
-  onRecentPlaylistClick
+  onRecentPlaylistClick,
+  onAdminClick
 }) => {
   const [activeTab, setActiveTab] = useState<LibraryTab>('Songs');
   
@@ -360,6 +362,20 @@ const LibraryView: React.FC<LibraryViewProps> = ({
               </button>
             </li>
           ))}
+          {onAdminClick && (
+            <li className="mt-4 pt-4 border-t border-gray-700">
+              <button
+                className="w-full block bg-transparent border-none text-left p-3.5 text-lg font-medium cursor-pointer border-l-4 border-transparent text-gray-300 hover:bg-gray-700 hover:text-white transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAdminClick();
+                  setIsMenuOpen(false);
+                }}
+              >
+                관리자 페이지
+              </button>
+            </li>
+          )}
         </ul>
       </div>
 

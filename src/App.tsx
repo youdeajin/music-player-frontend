@@ -10,6 +10,7 @@ import Chatbot from './components/Chatbot';
 import LoginView from './components/LoginView';
 import SignupView from './components/SignupView';
 import RecentPlaylistView from './components/RecentPlaylistView';
+import AdminView from './components/AdminView';
 
 // 공유 타입 임포트
 import { Song, Playlist, View, Artist, Album, User } from './types';
@@ -222,6 +223,7 @@ function App() {
    const navigateToAlbumDetail = (albumId: number) => { setSelectedAlbumId(albumId); setSelectedPlaylistId(null); setSelectedArtistId(null); setCurrentView('playlistDetail'); };
    const navigateToNowPlaying = () => { if(currentSong) setCurrentView('nowPlaying'); };
    const navigateToRecentPlaylist = () => { setCurrentView('recentPlaylist'); };
+   const navigateToAdmin = () => { setCurrentView('admin'); };
 
 
   // --- 데이터 로딩 useEffect ---
@@ -407,6 +409,7 @@ function App() {
                  refreshPlaylists={refreshPlaylists}
                  onSearchResultClick={playSingleSong}
                  onRecentPlaylistClick={navigateToRecentPlaylist}
+                 onAdminClick={navigateToAdmin}
                />
              )}
              {currentView === 'playlistDetail' && (selectedPlaylistId || selectedAlbumId) && (
@@ -442,6 +445,11 @@ function App() {
                       onPlayPause={handlePlayPause}
                       onNext={handleNext}
                       onPrev={handlePrev}
+                      onBackClick={navigateToLibrary}
+                  />
+              )}
+              {currentView === 'admin' && (
+                  <AdminView
                       onBackClick={navigateToLibrary}
                   />
               )}
