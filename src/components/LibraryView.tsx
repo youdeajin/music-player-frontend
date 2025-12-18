@@ -54,7 +54,7 @@ const LibraryView: React.FC<LibraryViewProps> = ({
   
   // 앨범 페이지네이션 상태
   const [albumsPage, setAlbumsPage] = useState(1);
-  const albumsPerPage = 10;
+  const albumsPerPage = 12; // 6개씩 2줄 (총 12개)
 
   // 컴포넌트 마운트 시 메뉴가 확실히 닫혀있는지 확인
   useEffect(() => {
@@ -260,14 +260,14 @@ const LibraryView: React.FC<LibraryViewProps> = ({
         
         return (
            <div className="flex flex-col gap-4">
-             <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-4">
+             <div className="grid grid-cols-6 gap-4">
                {displayedAlbums.map(album => (
                  <div
                    key={album.albumId}
-                   className="bg-dark-card/80 backdrop-blur-sm rounded-lg p-3 cursor-pointer transition-all duration-300 hover:bg-dark-hover hover:scale-105 hover:shadow-xl group border border-gray-800/30 hover:border-spotify-green/30"
+                   className="bg-dark-card/80 backdrop-blur-sm rounded-lg p-4 cursor-pointer transition-all duration-300 hover:bg-dark-hover hover:scale-105 hover:shadow-xl group border border-gray-800/30 hover:border-spotify-green/30"
                    onClick={() => onAlbumClick(album.albumId)}
                  >
-                   <div className="relative overflow-hidden rounded-md mb-2">
+                   <div className="relative overflow-hidden rounded-md mb-3">
                      <img 
                        src={album.coverUrl || '/logo192.png'} 
                        alt={album.title} 
@@ -275,8 +275,8 @@ const LibraryView: React.FC<LibraryViewProps> = ({
                      />
                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                    </div>
-                   <p className="text-sm font-semibold text-white mt-2 mb-1 truncate group-hover:text-spotify-green transition-colors">{album.title}</p>
-                   <p className="text-xs text-gray-400 m-0 truncate">{getArtistName(album.artistId)}</p>
+                   <p className="text-base font-semibold text-white mt-2 mb-1 truncate group-hover:text-spotify-green transition-colors">{album.title}</p>
+                   <p className="text-sm text-gray-400 m-0 truncate">{getArtistName(album.artistId)}</p>
                  </div>
                ))}
              </div>
@@ -424,7 +424,7 @@ const LibraryView: React.FC<LibraryViewProps> = ({
         </ul>
       </div>
 
-      <div className="flex justify-between items-center mb-6 px-2 sticky top-0 bg-dark-bg/95 backdrop-blur-sm z-10 pt-2.5 pb-2">
+      <div className="flex justify-between items-center mb-6 px-2 sticky top-0 bg-dark-bg/95 backdrop-blur-sm z-10 pt-12 pb-2">
         <button 
           onClick={(e) => {
             e.stopPropagation();
@@ -437,9 +437,11 @@ const LibraryView: React.FC<LibraryViewProps> = ({
         <h1 className="text-3xl font-bold text-white m-0 flex-grow text-center">{activeTab}</h1>
         <button 
           onClick={handleSearchIconClick} 
-          className="bg-transparent border-none text-gray-300 text-2xl cursor-pointer p-2 hover:text-spotify-green hover:scale-110 transition-all mr-2"
+          className="bg-transparent border border-gray-600 text-gray-300 text-xl cursor-pointer px-4 py-2 rounded-lg hover:bg-gray-700 hover:text-spotify-green hover:border-spotify-green transition-all mr-2 flex items-center gap-2"
+          title="검색"
         >
-          🔍
+          <span>🔍</span>
+          <span className="text-sm font-medium">검색</span>
         </button>
       </div>
 
