@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === 'development') {
 // axios 기본 설정
 const axiosInstance = axios.create({
   // 👇 여기에 복사한 Ngrok 주소를 붙여넣으세요! (따옴표 안에)
-  baseURL: 'https://unspirited-sheeplike-cheryle.ngrok-free.dev', 
+  baseURL: 'https://flattish-nonlethally-quiana.ngrok-free.dev', 
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
