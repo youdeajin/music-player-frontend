@@ -51,6 +51,10 @@ const LibraryView: React.FC<LibraryViewProps> = ({
   const [searchResults, setSearchResults] = useState<Song[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false); // 메뉴는 기본적으로 닫힌 상태
+  
+  // 앨범 페이지네이션 상태
+  const [albumsPage, setAlbumsPage] = useState(1);
+  const albumsPerPage = 10;
 
   // 컴포넌트 마운트 시 메뉴가 확실히 닫혀있는지 확인
   useEffect(() => {
@@ -60,6 +64,13 @@ const LibraryView: React.FC<LibraryViewProps> = ({
   // activeTab이 변경될 때도 메뉴 닫기
   useEffect(() => {
     setIsMenuOpen(false);
+  }, [activeTab]);
+  
+  // 탭 변경 시 앨범 페이지 초기화
+  useEffect(() => {
+    if (activeTab === 'Albums') {
+      setAlbumsPage(1);
+    }
   }, [activeTab]);
 
   // --- 검색 로직 ---
@@ -237,27 +248,61 @@ const LibraryView: React.FC<LibraryViewProps> = ({
           </div>
         );
       case 'Albums':
+        // 페이지네이션 계산
+        const totalAlbumsPages = Math.ceil(albums.length / albumsPerPage);
+        const startIndex = (albumsPage - 1) * albumsPerPage;
+        const endIndex = startIndex + albumsPerPage;
+        const displayedAlbums = albums.slice(startIndex, endIndex);
+        const getArtistName = (artistId: number): string => {
+          const artist = artists.find(a => a.artistId === artistId);
+          return artist ? artist.name : `ID ${artistId}`;
+        };
+        
         return (
-           <div className="flex flex-col gap-8">
-             {albums.map(album => (
-               <section key={album.albumId} className="mb-4">
-                 <div 
-                   className="flex items-center gap-4 mb-4 p-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-800" 
+           <div className="flex flex-col gap-4">
+             <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-4">
+               {displayedAlbums.map(album => (
+                 <div
+                   key={album.albumId}
+                   className="bg-dark-card/80 backdrop-blur-sm rounded-lg p-3 cursor-pointer transition-all duration-300 hover:bg-dark-hover hover:scale-105 hover:shadow-xl group border border-gray-800/30 hover:border-spotify-green/30"
                    onClick={() => onAlbumClick(album.albumId)}
                  >
+                   <div className="relative overflow-hidden rounded-md mb-2">
                      <img 
                        src={album.coverUrl || '/logo192.png'} 
                        alt={album.title} 
-                       className="w-15 h-15 object-cover rounded shadow-md flex-shrink-0" 
+                       className="w-full aspect-square object-cover shadow-lg group-hover:scale-110 transition-transform duration-500" 
                      />
-                     <div className="overflow-hidden">
-                         <p className="text-xs text-gray-400 m-0 mb-1 uppercase font-semibold tracking-wide">앨범</p>
-                         <h3 className="text-2xl font-bold text-white m-0">{album.title}</h3>
-                     </div>
-                  </div>
-                  <p className="text-gray-500 pl-2">앨범을 클릭하여 수록곡을 확인하세요.</p>
-               </section>
-             ))}
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                   </div>
+                   <p className="text-sm font-semibold text-white mt-2 mb-1 truncate group-hover:text-spotify-green transition-colors">{album.title}</p>
+                   <p className="text-xs text-gray-400 m-0 truncate">{getArtistName(album.artistId)}</p>
+                 </div>
+               ))}
+             </div>
+             
+             {/* 페이지네이션 컨트롤 */}
+             {totalAlbumsPages > 1 && (
+               <div className="flex justify-center items-center gap-4 mt-6">
+                 <button
+                   onClick={() => setAlbumsPage(prev => Math.max(1, prev - 1))}
+                   disabled={albumsPage === 1}
+                   className="px-4 py-2 bg-dark-card text-white border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                 >
+                   이전
+                 </button>
+                 <span className="text-gray-300">
+                   페이지 {albumsPage} / {totalAlbumsPages} (총 {albums.length}개 앨범)
+                 </span>
+                 <button
+                   onClick={() => setAlbumsPage(prev => Math.min(totalAlbumsPages, prev + 1))}
+                   disabled={albumsPage === totalAlbumsPages}
+                   className="px-4 py-2 bg-dark-card text-white border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                 >
+                   다음
+                 </button>
+               </div>
+             )}
            </div>
         );
       case 'Playlists':
