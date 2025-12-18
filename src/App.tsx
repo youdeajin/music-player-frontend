@@ -252,13 +252,15 @@ function App() {
         setAllAlbums(processedAlbums);
         setAllArtists(processedArtists);
 
+        // 🚨 [수정] 백엔드에서 이미 DTO로 반환하므로 매핑 불필요
+        // 백엔드에서 artistName과 albumCoverUrl이 이미 포함되어 있음
         const processSongs = (rawSongs: Song[]) => rawSongs.map(s => {
-             const album = processedAlbums.find(a => a.albumId === s.albumId);
-             const artist = processedArtists.find(ar => ar.artistId === s.artistId);
+             // 백엔드 DTO에서 이미 artistName과 albumCoverUrl이 포함되어 있지만,
+             // 혹시 모를 경우를 대비해 fallback 유지
              return { 
                  ...s, 
-                 albumCoverUrl: album?.coverUrl || placeholderCover, 
-                 artistName: artist?.name || `ID ${s.artistId}`
+                 albumCoverUrl: s.albumCoverUrl || processedAlbums.find(a => a.albumId === s.albumId)?.coverUrl || placeholderCover, 
+                 artistName: s.artistName || processedArtists.find(ar => ar.artistId === s.artistId)?.name || `ID ${s.artistId}`
              };
         });
 

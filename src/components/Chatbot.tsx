@@ -36,11 +36,13 @@ const Chatbot: React.FC<ChatbotProps> = ({ onRecommendationResult, allArtists })
 
       const foundSongs = response.data;
 
+      console.log("🎵 AI 추천 결과:", foundSongs);
+
       let aiResponseText: string;
       if (foundSongs.length > 0) {
           aiResponseText = "이런 곡들은 어떠세요?\n" +
               foundSongs.map(song => 
-                `${song.title} - ${getArtistName(song.artistId)}`
+                `${song.title} - ${song.artistName || getArtistName(song.artistId)}`
               ).join('\n');
       } else {
           aiResponseText = "죄송합니다. 요청에 맞는 곡을 DB에서 찾지 못했습니다.";

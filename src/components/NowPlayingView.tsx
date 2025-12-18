@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from '../axiosConfig';
 import axiosLib from 'axios';
 // types.ts 파일에서 공유 타입 임포트
-import { Song, Playlist, Artist } from '../types';
+import { Song, Playlist, Artist } from '../types'; 
 import { PlayIcon, PauseIcon, NextIcon, PrevIcon, ShuffleIcon, RepeatIcon } from './Icons';
 
 // App.tsx로부터 전달받을 Props 타입 정의

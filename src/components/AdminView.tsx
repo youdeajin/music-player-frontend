@@ -16,15 +16,16 @@ const AdminView: React.FC<AdminViewProps> = ({ onBackClick }) => {
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(false);
   
-  const [editingSong, setEditingSong] = useState<Song | null>(null);
-  const [editForm, setEditForm] = useState({
-    title: '',
-    artistId: '',
-    albumId: '',
-    filePath: '',
-    durationSeconds: '',
-    genre: ''
-  });
+      const [editingSong, setEditingSong] = useState<Song | null>(null);
+      const [editForm, setEditForm] = useState({
+        title: '',
+        artistId: '',
+        albumId: '',
+        filePath: '',
+        durationSeconds: '',
+        genre: ''
+      });
+      const [dbAnalysis, setDbAnalysis] = useState<any>(null);
 
   // 관리자 인증
   const handleAdminAuth = async () => {
@@ -153,17 +154,30 @@ const AdminView: React.FC<AdminViewProps> = ({ onBackClick }) => {
   };
 
   // 곡 수정 취소
-  const handleCancelEdit = () => {
-    setEditingSong(null);
-    setEditForm({
-      title: '',
-      artistId: '',
-      albumId: '',
-      filePath: '',
-      durationSeconds: '',
-      genre: ''
-    });
-  };
+      const handleCancelEdit = () => {
+        setEditingSong(null);
+        setEditForm({
+          title: '',
+          artistId: '',
+          albumId: '',
+          filePath: '',
+          durationSeconds: '',
+          genre: ''
+        });
+      };
+
+      const fetchDbAnalysis = async () => {
+        setLoading(true);
+        try {
+          const response = await axios.get('/api/admin/songs/analysis');
+          setDbAnalysis(response.data);
+        } catch (err: any) {
+          alert(err.response?.data?.error || 'DB 분석 실패');
+          console.error('DB analysis error:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
 
   // 로그아웃
   const handleLogout = () => {
@@ -266,6 +280,56 @@ const AdminView: React.FC<AdminViewProps> = ({ onBackClick }) => {
             🎵 곡 관리
           </button>
         </div>
+
+        {/* DB 분석 및 수정 버튼 */}
+        <div className="mb-4 flex gap-3">
+          <button
+            onClick={fetchDbAnalysis}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            📊 DB 분석 (제대로 매치된 곡 개수 확인)
+          </button>
+          <button
+            onClick={async () => {
+              if (window.confirm('곡 메타데이터(가수 이름, 앨범 정보)를 자동으로 수정하시겠습니까?')) {
+                setLoading(true);
+                try {
+                  const response = await axios.post('/api/admin/songs/fix-metadata');
+                  alert(`수정 완료! ${response.data.fixedCount}개의 곡이 수정되었습니다.`);
+                  if (activeTab === 'songs') {
+                    loadSongs();
+                  }
+                } catch (err: any) {
+                  alert(err.response?.data?.error || '메타데이터 수정 실패');
+                  console.error('Fix metadata error:', err);
+                } finally {
+                  setLoading(false);
+                }
+              }
+            }}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            🔧 곡 메타데이터 자동 수정
+          </button>
+        </div>
+
+        {/* DB 분석 결과 */}
+        {dbAnalysis && (
+          <div className="mb-6 bg-dark-card rounded-lg shadow-xl p-6">
+            <h3 className="text-xl font-bold text-white mb-4">DB 분석 결과</h3>
+            <div className="space-y-2 text-sm">
+              <p className="text-gray-300">전체 곡 수: <span className="text-white font-semibold">{dbAnalysis.totalSongs}</span></p>
+              <p className="text-gray-300">제목이 있는 곡: <span className="text-white font-semibold">{dbAnalysis.songsWithTitle}</span></p>
+              <p className="text-gray-300">앨범 ID가 있는 곡: <span className="text-white font-semibold">{dbAnalysis.songsWithAlbum}</span></p>
+              <p className="text-gray-300">앨범 커버가 있는 곡: <span className="text-white font-semibold">{dbAnalysis.songsWithCover}</span></p>
+              <p className="text-gray-300">파일 경로가 있는 곡: <span className="text-white font-semibold">{dbAnalysis.songsWithFilePath}</span></p>
+              <p className="text-gray-300">실제 파일 경로가 있는 곡 (Pokemon URL 제외): <span className="text-white font-semibold">{dbAnalysis.songsWithValidFilePath}</span></p>
+              <p className="text-spotify-green text-lg font-bold mt-4">
+                ✅ 제대로 매치된 곡 (제목 + 앨범 커버 + 실제 파일): <span className="text-2xl">{dbAnalysis.fullyMatchedSongs}</span>개
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* 콘텐츠 */}
         {loading && (
